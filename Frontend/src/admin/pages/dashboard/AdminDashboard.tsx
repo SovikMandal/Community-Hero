@@ -234,17 +234,15 @@ export function AdminDashboard({ isDark }: { isDark?: boolean }) {
         </div>
       ) : (
         <>
+          {/* Admin mission — the most pressing operational action */}
+          <AdminMission isDark={isDark} data={data} onAction={() => navigate("/admin/reports")} />
+
           {/* Stat cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard icon={FileText} label="Total Reports" value={String(total)} accent="#2563EB" />
             <StatCard icon={CheckCircle2} label="Resolved" value={String(data?.issues.resolved ?? 0)} accent="#16A34A" />
             <StatCard icon={Building2} label="Departments" value={String(data?.departments ?? 0)} accent="#7C3AED" />
             <StatCard icon={Users} label="Active Citizens" value={String(data?.users.citizens ?? 0)} accent="#D97706" />
-          </div>
-
-          {/* Admin mission — the most pressing operational action */}
-          <div className="mt-6">
-            <AdminMission isDark={isDark} data={data} onAction={() => navigate("/admin/reports")} />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
