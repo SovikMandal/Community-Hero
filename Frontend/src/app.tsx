@@ -60,18 +60,6 @@ export default function App() {
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    const timer = setTimeout(() => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        (err) => console.warn("[App] geolocation failed:", err.code, err.message),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 600000 }
-      );
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleLogin = async (email: string, password: string, asAdmin = false) => {
     const loggedIn = await login({ email, password });
     // The admin area requires a real ADMIN role issued by the backend. A normal

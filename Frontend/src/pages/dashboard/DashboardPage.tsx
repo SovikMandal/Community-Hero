@@ -53,8 +53,17 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
   const displayName = user?.name ?? "Guest";
   const firstName = displayName.split(" ")[0];
 
-  // Use location from parent (app.tsx) — no duplicate prompt needed.
-  const userLocation = userLocationProp ?? null;
+  // Request geolocation when the user reaches the dashboard.
+  const [localLocation, setLocalLocation] = useState<{ lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setLocalLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (err) => console.warn("[Dashboard] geolocation failed:", err.code, err.message),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  }, []);
+  const userLocation = userLocationProp ?? localLocation;
   const nav = useNavigate();
   const location = useLocation();
   const path = location.pathname;
