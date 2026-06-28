@@ -127,10 +127,10 @@ export function Nav({ onAuthClick, isDark, onToggleDark }: { onAuthClick: () => 
               </a>
             ))}
             <button
-              onClick={onAuthClick}
-              className="mt-2 w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl"
+              onClick={() => { setOpen(false); onAuthClick(); }}
+              className="mt-2 w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 transition-colors"
             >
-              Report Issue
+              Sign In / Sign Up
             </button>
           </motion.div>
         )}

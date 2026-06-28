@@ -24,6 +24,14 @@ export const env = {
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET || "dev_refresh_secret_change_me",
   refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "30d",
 
+  // Google Sign-In (OAuth 2.0 authorization-code flow).
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  // Where Google redirects back after the user picks an account. Must be
+  // registered as an "Authorized redirect URI" on the OAuth client.
+  googleRedirectUri:
+    process.env.GOOGLE_REDIRECT_URI || "http://localhost:5000/api/auth/google/callback",
+
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,

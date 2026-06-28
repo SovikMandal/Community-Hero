@@ -83,6 +83,13 @@ export async function login(input: LoginInput): Promise<User> {
   return merged;
 }
 
+/** Starts the Google OAuth 2.0 redirect flow. The browser leaves the SPA and
+ *  goes to Google's "Choose an account" screen; after consent, Google → backend
+ *  → back to /auth/callback with the session tokens. (Full-page navigation.) */
+export function beginGoogleAuth(): void {
+  window.location.href = "/api/auth/google";
+}
+
 /** Uploads a new profile photo, persists it on the backend, and returns the
  *  updated user. The photo is stored on Cloudinary and its URL saved in the DB. */
 export async function uploadAvatar(file: File): Promise<User> {

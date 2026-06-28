@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { LandingPage } from "./pages/landing/LandingPage";
 import { AuthPage } from "./pages/auth/AuthPage";
+import { GoogleCallbackPage } from "./pages/auth/GoogleCallbackPage";
 import { ResetPasswordPage } from "./pages/auth/ResetPasswordPage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { AdminLayout } from "./admin/AdminLayout";
@@ -17,6 +18,7 @@ import {
   fetchCurrentUser,
   getCachedUser,
   login,
+  beginGoogleAuth,
   logout,
   register,
   ApiError,
@@ -37,7 +39,7 @@ export default function App() {
     let active = true;
     // Public routes that must remain accessible while logged out (e.g. the
     // password reset link arrives via email when the user has no session).
-    const publicPaths = ["/reset-password"];
+    const publicPaths = ["/reset-password", "/auth/callback"];
     const onPublicPath = publicPaths.some((p) => window.location.pathname.startsWith(p));
     fetchCurrentUser()
       .then((fresh) => {
@@ -87,6 +89,13 @@ export default function App() {
     navigate("/dashboard", { replace: true });
   };
 
+  // Called by GoogleCallbackPage after the OAuth redirect establishes a session
+  // and loads the user. Routes by role, same as email login.
+  const handleGoogleAuthed = (loggedIn: User) => {
+    setUser(loggedIn);
+    navigate(loggedIn.role === "ADMIN" ? "/admin" : "/dashboard", { replace: true });
+  };
+
   const handleGuest = () => {
     logout();
     setUser(null);
@@ -124,10 +133,12 @@ export default function App() {
           onEnter={() => navigate(getCachedUser()?.role === "ADMIN" ? "/admin" : "/dashboard")}
           onLogin={handleLogin}
           onRegister={handleRegister}
+          onGoogle={beginGoogleAuth}
           onGuest={handleGuest}
         />
       } />
       <Route path="/reset-password" element={<ResetPasswordPage isDark={isDark} />} />
+      <Route path="/auth/callback" element={<GoogleCallbackPage isDark={isDark} onAuthenticated={handleGoogleAuthed} />} />
       <Route path="/dashboard" element={dashboard} />
       <Route path="/report" element={dashboard} />
       <Route path="/explore" element={dashboard} />

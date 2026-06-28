@@ -27,10 +27,11 @@ interface AuthPageProps {
   onEnter: () => void;
   onLogin: (email: string, password: string, asAdmin?: boolean) => Promise<void>;
   onRegister: (input: RegisterInput) => Promise<void>;
+  onGoogle: () => void;
   onGuest: () => void;
 }
 
-export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister, onGuest }: AuthPageProps) {
+export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister, onGoogle, onGuest }: AuthPageProps) {
   const [tab, setTab] = useState<"login" | "signup" | "admin">("login");
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -153,9 +154,11 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
   };
 
   const handleGoogle = () => {
-    // The backend does not expose Google OAuth — surface that clearly instead
-    // of faking a sign-in.
-    setError("Google sign-in isn't available yet. Use email or continue as guest.");
+    // Full-page redirect to Google's OAuth 2.0 consent screen. Control returns
+    // to /auth/callback (handled by GoogleCallbackPage) once the user signs in.
+    setError(null);
+    setLoading("google");
+    onGoogle();
   };
 
   const handleGuest = () => {
@@ -352,7 +355,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                  <span className="relative z-10">{t === "login" ? "Sign In" : t === "signup" ? "Create Account" : "Admin"}</span>
+                  <span className="relative z-10">{t === "login" ? "Sign In" : t === "signup" ? "Sign Up" : "Admin"}</span>
                 </button>
               ))}
             </div>
@@ -587,7 +590,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
                   />
                 ) : (
                   <>
-                  {tab === "login" ? "Sign In" : tab === "admin" ? "Sign In" : "Create Account"}
+                  {tab === "login" ? "Sign In" : tab === "admin" ? "Sign In" : "Sign Up"}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

@@ -109,7 +109,10 @@ model User {
   id        String   @id @default(cuid())
   name      String
   email     String   @unique
-  password  String
+  // Optional: users who sign in with Google have no local password.
+  password  String?
+  // Google account subject id (the `sub` claim). Set for Google-linked accounts.
+  googleId  String?  @unique
   role      Role     @default(CITIZEN)
   refreshToken String?
 
