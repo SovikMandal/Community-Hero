@@ -106,7 +106,7 @@ export function Hero({ onAuthClick, isDark }: { onAuthClick: () => void; isDark?
           initial={{ opacity: 0, x: 40, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="h-[500px] lg:h-[560px]"
+          className="hidden lg:block h-[500px] lg:h-[560px]"
         >
           <MapMockup isDark={isDark} />
         </motion.div>

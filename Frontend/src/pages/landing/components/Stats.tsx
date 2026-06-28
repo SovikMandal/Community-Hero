@@ -14,7 +14,7 @@ export function Stats() {
   return (
     <section id="analytics" className="py-20 bg-white dark:bg-transparent scroll-mt-24">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map(({ value, suffix, label, icon: Icon, color, bg }, i) => (
             <motion.div
               key={label}
