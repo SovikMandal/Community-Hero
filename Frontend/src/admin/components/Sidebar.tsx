@@ -94,7 +94,7 @@ export function Sidebar({ onLogout, mobileOpen = false, onCloseMobile }: Sidebar
   return (
     <>
       {/* Desktop rail */}
-      <aside className="hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+      <aside className="hidden h-screen w-64 flex-col border-r border-sidebar-border bg-white dark:bg-black lg:flex">
         <SidebarBody onLogout={onLogout} />
       </aside>
 
@@ -106,7 +106,7 @@ export function Sidebar({ onLogout, mobileOpen = false, onCloseMobile }: Sidebar
             onClick={onCloseMobile}
             aria-hidden="true"
           />
-          <aside className="absolute left-0 top-0 bottom-0 flex w-64 flex-col border-r border-sidebar-border bg-sidebar shadow-xl">
+          <aside className="absolute left-0 top-0 bottom-0 flex w-64 flex-col border-r border-sidebar-border bg-white dark:bg-black shadow-xl">
             <button
               onClick={onCloseMobile}
               aria-label="Close menu"
