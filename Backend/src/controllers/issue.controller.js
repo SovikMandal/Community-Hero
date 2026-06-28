@@ -286,10 +286,14 @@ export const listIssues = asyncHandler(async (req, res) => {
 /**
  * GET /api/issues/map
  * Lightweight payload for map markers (Feature 7).
+ * Pass ?mine=true to show only the signed-in user's reports.
  */
 export const getMapIssues = asyncHandler(async (req, res) => {
+  const mine = req.query.mine === "true" && !!req.user;
+  const where = { status: { not: "REJECTED" }, ...(mine && { reporterId: req.user.id }) };
+
   const issues = await prisma.issue.findMany({
-    where: { status: { not: "REJECTED" } },
+    where,
     select: {
       id: true,
       title: true,

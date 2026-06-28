@@ -10,36 +10,41 @@ import { computeRankedUsers, POINTS_PER_LEVEL } from "../services/leaderboard.se
  * GET /api/dashboard/stats
  * Total complaints, resolved %, avg resolution time, common issue,
  * hotspots, and department performance.
+ * Pass ?mine=true to scope all metrics to the signed-in user's own reports.
  */
 export const getStats = asyncHandler(async (req, res) => {
-  // Platform-wide metrics (not scoped to the signed-in user) so the headline
-  // KPI cards stay consistent with the global Issue Pipeline beside them.
-  // REJECTED issues are excluded so the resolution rate isn't diluted by them.
-  const where = { status: { not: "REJECTED" } };
-  const whereCompleted = { status: "COMPLETED" };
+  const mine = req.query.mine === "true" && !!req.user;
+  const base = mine
+    ? { reporterId: req.user.id, status: { not: "REJECTED" } }
+    : { status: { not: "REJECTED" } };
+  const baseCompleted = mine
+    ? { reporterId: req.user.id, status: "COMPLETED" }
+    : { status: "COMPLETED" };
 
   const [total, resolved, byCategory, byDepartment, completedIssues] =
     await Promise.all([
-      prisma.issue.count({ where }),
-      prisma.issue.count({ where: whereCompleted }),
+      prisma.issue.count({ where: base }),
+      prisma.issue.count({ where: baseCompleted }),
       prisma.issue.groupBy({
         by: ["category"],
-        where,
+        where: base,
         _count: { _all: true },
         orderBy: { _count: { category: "desc" } },
       }),
       prisma.issue.groupBy({
         by: ["departmentId"],
-        where,
+        where: base,
         _count: { _all: true },
       }),
       prisma.issue.findMany({
-        where: whereCompleted,
+        where: baseCompleted,
         select: { createdAt: true, updatedAt: true },
       }),
     ]);
 
-  const rejected = await prisma.issue.count({ where: { status: "REJECTED" } });
+  const rejected = await prisma.issue.count({
+    where: mine ? { reporterId: req.user.id, status: "REJECTED" } : { status: "REJECTED" },
+  });
 
   // Average resolution time (ms -> hours) across completed issues.
   let avgResolutionHours = null;

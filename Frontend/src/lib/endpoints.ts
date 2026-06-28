@@ -76,8 +76,9 @@ export const issues = {
     }));
   },
 
-  map(): Promise<MapMarker[]> {
-    return api.get<{ issues: MapMarker[] }>("/issues/map").then((d) => d.issues);
+  map(params: { mine?: boolean } = {}): Promise<MapMarker[]> {
+    const query: Record<string, string | boolean | undefined> = { ...params };
+    return api.get<{ issues: MapMarker[] }>("/issues/map", query).then((d) => d.issues);
   },
 
   /** The signed-in user's own + merged reports' lifecycle timeline (paginated). */
@@ -164,8 +165,9 @@ export const issues = {
 
 // ── Dashboard ────────────────────────────────────────────────────────────────
 export const dashboard = {
-  stats(): Promise<DashboardStats> {
-    return api.get<DashboardStats>("/dashboard/stats");
+  stats(params: { mine?: boolean } = {}): Promise<DashboardStats> {
+    const query: Record<string, string | boolean | undefined> = { ...params };
+    return api.get<DashboardStats>("/dashboard/stats", query);
   },
   hotspots(): Promise<Hotspot[]> {
     return api.get<{ hotspots: Hotspot[] }>("/dashboard/hotspots").then((d) => d.hotspots);

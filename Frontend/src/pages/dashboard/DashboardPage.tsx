@@ -140,9 +140,9 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
   // tab visibility, interval) — not just when navigating into the Dashboard.
   const loadDashboardData = useCallback(() => {
     return Promise.allSettled([
-      dashboard.stats(),
-      issuesApi.list({ limit: 8 }),
-      issuesApi.map(),
+      dashboard.stats({ mine: true }),
+      issuesApi.list({ limit: 8, mine: true }),
+      issuesApi.map({ mine: true }),
       dashboard.leaderboard(),
       issuesApi.myActivity({ limit: 6 }),
     ]).then((results) => {

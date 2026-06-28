@@ -18,7 +18,7 @@ const router = Router();
 
 // Public-ish reads (optionalAuth lets "mine" filter work when logged in).
 router.get("/", optionalAuth, listIssues);
-router.get("/map", getMapIssues);
+router.get("/map", optionalAuth, getMapIssues);
 // Signed-in user's own + merged reports' lifecycle timeline. Declared before
 // "/:id" so "my-activity" isn't captured as an issue id.
 router.get("/my-activity", authenticate, getMyActivity);
