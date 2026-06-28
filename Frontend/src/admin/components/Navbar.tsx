@@ -121,7 +121,7 @@ export function Navbar({
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className={(isDark ? "dark " : "") + "w-52"}>
             <DropdownMenuLabel>
               <span className="block truncate">{user?.name ?? "Admin"}</span>
               {user?.email && (

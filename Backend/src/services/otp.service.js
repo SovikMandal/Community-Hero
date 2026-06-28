@@ -82,7 +82,7 @@ function buildOtpEmail(otp) {
 <body style="margin:0;padding:0;background-color:#f1f5f9;">
   <!-- Preheader (hidden preview text) -->
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;height:0;width:0;">
-    Your Cityguardian verification code is ${otp}. It expires in 5 minutes.
+    Use the verification code inside to confirm your email. It expires in 5 minutes.
   </div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
@@ -157,7 +157,7 @@ export async function sendOtp(email) {
 
   await sendEmail({
     to: email,
-    subject: `${otp} is your Cityguardian verification code`,
+    subject: "Your Cityguardian verification code",
     html: buildOtpEmail(otp),
   });
 
