@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { GridBackground } from "../../../components/GridBackground";
+import { AdminMission } from "./AdminMission";
 import {
   FileText,
   CheckCircle2,
@@ -239,6 +240,11 @@ export function AdminDashboard({ isDark }: { isDark?: boolean }) {
             <StatCard icon={CheckCircle2} label="Resolved" value={String(data?.issues.resolved ?? 0)} accent="#16A34A" />
             <StatCard icon={Building2} label="Departments" value={String(data?.departments ?? 0)} accent="#7C3AED" />
             <StatCard icon={Users} label="Active Citizens" value={String(data?.users.citizens ?? 0)} accent="#D97706" />
+          </div>
+
+          {/* Admin mission — the most pressing operational action */}
+          <div className="mt-6">
+            <AdminMission isDark={isDark} data={data} onAction={() => navigate("/admin/reports")} />
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">

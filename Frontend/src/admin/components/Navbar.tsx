@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Search, Bell, ChevronDown, UserCircle, LogOut, Menu, Sun, Moon } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,7 +50,6 @@ export function Navbar({
   onToggleDark,
   onOpenMobileSidebar,
 }: NavbarProps) {
-  const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
   const handleQuery = (value: string) => {
@@ -133,7 +131,7 @@ export function Navbar({
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/admin/profile")}>
+            <DropdownMenuItem disabled>
               <UserCircle className="h-4 w-4" />
               Profile
             </DropdownMenuItem>

@@ -68,10 +68,15 @@ function SidebarBody({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
 
       {/* Account actions */}
       <div className="flex flex-col gap-1 border-t border-sidebar-border px-3 py-4">
-        <NavLink to="/admin/profile" className={linkClass} onClick={onNavigate}>
+        {/* Profile is disabled — there is no dedicated admin profile page yet. */}
+        <div
+          aria-disabled="true"
+          title="Profile is not available yet"
+          className="flex w-full cursor-not-allowed items-center gap-3.5 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-muted-foreground/50"
+        >
           <UserCircle className="h-5 w-5 shrink-0" />
           <span className="truncate">Profile</span>
-        </NavLink>
+        </div>
 
         <button
           onClick={onLogout}

@@ -96,12 +96,6 @@ export default function App() {
     navigate(loggedIn.role === "ADMIN" ? "/admin" : "/dashboard", { replace: true });
   };
 
-  const handleGuest = () => {
-    logout();
-    setUser(null);
-    navigate("/dashboard", { replace: true });
-  };
-
   const handleSignOut = () => {
     logout();
     setUser(null);
@@ -134,7 +128,6 @@ export default function App() {
           onLogin={handleLogin}
           onRegister={handleRegister}
           onGoogle={beginGoogleAuth}
-          onGuest={handleGuest}
         />
       } />
       <Route path="/reset-password" element={<ResetPasswordPage isDark={isDark} />} />

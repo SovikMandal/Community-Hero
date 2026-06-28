@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   CheckCircle2,
   Zap,
-  Users,
   MapPin,
   Camera,
   X,
@@ -28,10 +27,9 @@ interface AuthPageProps {
   onLogin: (email: string, password: string, asAdmin?: boolean) => Promise<void>;
   onRegister: (input: RegisterInput) => Promise<void>;
   onGoogle: () => void;
-  onGuest: () => void;
 }
 
-export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister, onGoogle, onGuest }: AuthPageProps) {
+export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister, onGoogle }: AuthPageProps) {
   const [tab, setTab] = useState<"login" | "signup" | "admin">("login");
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -161,11 +159,6 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
     onGoogle();
   };
 
-  const handleGuest = () => {
-    setLoading("guest");
-    setTimeout(onGuest, 400);
-  };
-
   return (
     <div
       className="min-h-screen w-full flex overflow-x-hidden relative"
@@ -287,7 +280,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
         </motion.button>
 
         {/* Mobile logo */}
-        <div className="lg:hidden flex items-center gap-2 mb-10">
+        <div className="lg:hidden absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
             <Shield className="w-4 h-4 text-white" />
           </div>
@@ -634,36 +627,6 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
               )}
             </motion.button>
             </>)}
-
-            {/* Guest */}
-            {tab !== "admin" && (
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGuest}
-              disabled={loading !== null}
-              className="w-full py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-              style={{
-                background: "#F8FAFC",
-                color: "#64748B",
-                border: "1px solid rgba(15,23,42,0.08)",
-                fontFamily: "Inter, sans-serif",
-              }}
-            >
-              {loading === "guest" ? (
-                <motion.div
-                  className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-slate-500"
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 0.75, ease: "linear" }}
-                />
-              ) : (
-                <>
-                  <Users className="w-4 h-4" />
-                  Continue as Guest
-                </>
-              )}
-            </motion.button>
-            )}
 
             {tab === "signup" && (
               <p className="text-center text-slate-400 text-xs mt-5 leading-relaxed">
