@@ -1,4 +1,4 @@
-import { CheckCircle2, X } from "lucide-react";
+import { CheckCircle2, Loader2, X } from "lucide-react";
 import { timeAgo } from "../../../../lib";
 import type { DashboardTheme } from "../../../../pages/dashboard/theme";
 import type { Issue, IssueContributor } from "../../../../lib";
@@ -53,18 +53,18 @@ export function StatusCard({
         <button
           onClick={onAccept}
           disabled={acceptDisabled}
-          className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 disabled:opacity-50"
           style={{ background: "#16A34A" }}
         >
-          <CheckCircle2 className="w-4 h-4" /> Accept report
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Accept report
         </button>
         <button
           onClick={onReject}
           disabled={busy || locked || isRejected}
-          className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-50"
           style={{ background: "rgba(220,38,38,0.12)", color: "#DC2626" }}
         >
-          <X className="w-4 h-4" /> Reject report
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Reject report
         </button>
       </div>
 

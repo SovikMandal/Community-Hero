@@ -1,4 +1,4 @@
-import { CheckCircle2, RefreshCw, Send } from "lucide-react";
+import { CheckCircle2, Loader2, RefreshCw, Send } from "lucide-react";
 import type { DashboardTheme } from "../../../../pages/dashboard/theme";
 import type { Surface } from "./reportDetail";
 
@@ -27,7 +27,7 @@ export function ReportFooter({
         <button
           onClick={onRefresh}
           disabled={busy}
-          className="inline-flex font-semibold rounded-full text-sm px-5 py-2.5 items-center gap-2 border disabled:opacity-60"
+          className="inline-flex font-semibold rounded-full text-sm px-5 py-2.5 items-center gap-2 border transition-all active:scale-95 disabled:opacity-60"
           style={{ borderColor: t.inputBorder, color: t.text }}
         >
           <RefreshCw className={`w-4 h-4 ${busy ? "animate-spin" : ""}`} /> Refresh Status
@@ -35,10 +35,10 @@ export function ReportFooter({
         <button
           onClick={onAdvance}
           disabled={!canAdvance}
-          className="inline-flex font-semibold rounded-full text-sm px-5 py-2.5 items-center gap-2 text-white disabled:opacity-60"
+          className="inline-flex font-semibold rounded-full text-sm px-5 py-2.5 items-center gap-2 text-white transition-all active:scale-95 disabled:opacity-60"
           style={{ background: "#2563EB" }}
         >
-          <Send className="w-4 h-4" /> Advance Status
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Advance Status
         </button>
       </div>
     </div>

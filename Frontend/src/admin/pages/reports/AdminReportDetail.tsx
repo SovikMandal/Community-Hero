@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   admin,
   departments as departmentsApi,
@@ -90,23 +91,52 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
       setBusy(true);
       return Promise.resolve(action())
         .then(() => loadIssue())
-        .catch(() => setError("Action failed. Please try again."))
+        .catch(() => {
+          setError("Action failed. Please try again.");
+          toast.error("Action failed. Please try again.");
+          return Promise.reject();
+        })
         .finally(() => setBusy(false));
     },
     [loadIssue],
   );
 
-  const handleStatus = (status: IssueStatus) => id && runAction(() => admin.issues.updateStatus(id, status));
+  const handleStatus = (status: IssueStatus) => {
+    if (!id) return;
+    runAction(() => admin.issues.updateStatus(id, status)).then(() => {
+      const msgs: Record<string, { msg: string; type: "success" | "info" | "warning" }> = {
+        ACCEPTED: { msg: "Report accepted successfully", type: "success" },
+        VERIFIED: { msg: "Report marked as verified", type: "info" },
+        ASSIGNED: { msg: "Report assigned to department", type: "info" },
+        ENGINEER_VISITED: { msg: "Field inspector assigned", type: "info" },
+        REPAIR_STARTED: { msg: "Repair work started", type: "warning" },
+        COMPLETED: { msg: "Issue resolved successfully", type: "success" },
+      };
+      const m = msgs[status] ?? { msg: "Status updated", type: "info" };
+      toast[m.type](m.msg);
+    }).catch(() => {});
+  };
 
-  // Status change with an explicit timeline note (used by department actions:
-  // inspector assignment, work-progress changes, issue resolution).
-  const handleStatusNote = (status: IssueStatus, note: string) =>
-    id && runAction(() => admin.issues.updateStatus(id, status, note));
+  const handleStatusNote = (status: IssueStatus, note: string) => {
+    if (!id) return;
+    runAction(() => admin.issues.updateStatus(id, status, note)).then(() => {
+      const msgs: Record<string, { msg: string; type: "success" | "info" | "warning" }> = {
+        ASSIGNED: { msg: "Report routed to department", type: "info" },
+        ENGINEER_VISITED: { msg: "Field inspector assigned", type: "info" },
+        REPAIR_STARTED: { msg: "Repair work started", type: "warning" },
+        COMPLETED: { msg: "Issue resolved successfully!", type: "success" },
+      };
+      const m = msgs[status] ?? { msg: "Status updated", type: "info" };
+      toast[m.type](m.msg);
+    }).catch(() => {});
+  };
 
   const handleAssign = (departmentId: string) => {
     if (!id || !departmentId) return;
     setAssigning(false);
-    runAction(() => admin.issues.assign(id, departmentId));
+    runAction(() => admin.issues.assign(id, departmentId)).then(() => {
+      toast.info("Department assigned successfully");
+    }).catch(() => {});
   };
 
   // ── Reject-with-reason flow ────────────────────────────────────────────────
@@ -130,7 +160,9 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
     const note = rejectReason.trim();
     if (!note) return;
     setRejectOpen(false);
-    runAction(() => admin.issues.updateStatus(id, "REJECTED", note));
+    runAction(() => admin.issues.updateStatus(id, "REJECTED", note)).then(() => {
+      toast.error("Report rejected");
+    }).catch(() => {});
   };
 
   // ── Loading / error states ─────────────────────────────────────────────────
@@ -185,7 +217,14 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
           isDepartment={isDepartment}
           busy={busy}
           contributors={contributors}
-          onAccept={() => (isDepartment ? setDeptAcceptedLocal(true) : handleStatus("ACCEPTED"))}
+          onAccept={() => {
+            if (isDepartment) {
+              setDeptAcceptedLocal(true);
+              toast.success("Report accepted by department");
+            } else {
+              handleStatus("ACCEPTED");
+            }
+          }}
           onReject={openRejectModal}
         />
 

@@ -1,4 +1,4 @@
-import { Building2, CheckCircle2, Clock, Route, Send, User as UserIcon } from "lucide-react";
+import { Building2, CheckCircle2, Clock, Loader2, Route, Send, User as UserIcon } from "lucide-react";
 import type { DashboardTheme } from "../../../../pages/dashboard/theme";
 import type { Department, Issue, IssueStatus } from "../../../../lib";
 import { FIELD_INSPECTORS, type DerivedReport, type Surface } from "./reportDetail";
@@ -111,10 +111,10 @@ export function ReportActions({
                     <button
                       onClick={() => onStatusNote("COMPLETED", "Issue resolved")}
                       disabled={busy || locked}
-                      className={actionBtn + " w-full justify-center text-white"}
+                      className={actionBtn + " w-full justify-center text-white active:scale-95 transition-transform"}
                       style={{ background: "#16A34A" }}
                     >
-                      <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Issue resolved</span>
+                      <span className="flex items-center gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Issue resolved</span>
                     </button>
                   </div>
                 </div>
@@ -133,10 +133,10 @@ export function ReportActions({
             <button
               onClick={() => onStatus("VERIFIED")}
               disabled={busy || locked || currentIndex < stageOrder.indexOf("ACCEPTED") || currentIndex >= stageOrder.indexOf("VERIFIED")}
-              className={actionBtn + " border"}
+              className={actionBtn + " border active:scale-95 transition-transform"}
               style={{ borderColor: t.inputBorder, color: t.text, background: surface.innerBg }}
             >
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Mark verified</span>
+              <span className="flex items-center gap-2">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 text-emerald-500" />} Mark verified</span>
             </button>
 
             {assigning ? (
@@ -160,13 +160,13 @@ export function ReportActions({
                   <span className="truncate">{issue.department.name}</span>
                 </span>
                 {!locked && (
-                  <button onClick={() => onSetAssigning(true)} disabled={busy || !accepted} className="shrink-0 text-xs font-semibold text-blue-500 disabled:opacity-50">
+                  <button onClick={() => onSetAssigning(true)} disabled={busy || !accepted} className="shrink-0 text-xs font-semibold text-blue-500 active:scale-95 transition-transform disabled:opacity-50">
                     Change
                   </button>
                 )}
               </div>
             ) : (
-              <button onClick={() => onSetAssigning(true)} disabled={busy || locked || !accepted} className={actionBtn + " text-white"} style={{ background: "#2563EB" }}>
+              <button onClick={() => onSetAssigning(true)} disabled={busy || locked || !accepted} className={actionBtn + " text-white active:scale-95 transition-transform"} style={{ background: "#2563EB" }}>
                 <span className="flex items-center gap-2"><Route className="w-4 h-4" /> Assign department</span>
               </button>
             )}
@@ -176,13 +176,13 @@ export function ReportActions({
             <button
               onClick={() => onStatusNote("ASSIGNED", `Routed to ${issue.department?.name ?? "department"}`)}
               disabled={busy || locked || !accepted || !issue.department || currentIndex >= stageOrder.indexOf("ASSIGNED")}
-              className={actionBtn + (currentIndex >= stageOrder.indexOf("ASSIGNED") ? " border" : " text-white")}
+              className={actionBtn + (currentIndex >= stageOrder.indexOf("ASSIGNED") ? " border" : " text-white") + " active:scale-95 transition-transform"}
               style={currentIndex >= stageOrder.indexOf("ASSIGNED")
                 ? { borderColor: t.inputBorder, color: t.text, background: surface.innerBg }
                 : { background: "#2563EB" }}
             >
               <span className="flex items-center gap-2">
-                <Send className="w-4 h-4" />
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 {currentIndex >= stageOrder.indexOf("ASSIGNED") ? "Request sent" : "Route to department"}
               </span>
             </button>

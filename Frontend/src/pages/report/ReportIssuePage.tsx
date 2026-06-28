@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { AnimatePresence } from "motion/react";
+import { toast } from "sonner";
 import { tk } from "./theme";
 import { CameraCapture } from "./components/CameraCapture";
 import { SuccessScreen } from "./components/SuccessScreen";
@@ -201,6 +202,7 @@ export function ReportIssuePage({ isDark, onBack }: ReportIssuePageProps) {
       });
       setCreatedIssue(issue);
       setSubmitted(true);
+      toast.success("Report submitted successfully!");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setDuplicateFound(true);
@@ -250,10 +252,11 @@ export function ReportIssuePage({ isDark, onBack }: ReportIssuePageProps) {
       }
       setCreatedIssue(mergeDuplicate.issue);
       setSubmitted(true);
+      toast.info("Report merged with existing issue");
     } catch (err) {
-      setSubmitError(
-        err instanceof ApiError ? err.message : "Merge failed — please try again."
-      );
+      const msg = err instanceof ApiError ? err.message : "Merge failed — please try again.";
+      setSubmitError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
