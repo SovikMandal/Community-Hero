@@ -168,7 +168,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
 
   return (
     <div
-      className="min-h-screen w-full flex overflow-hidden relative"
+      className="min-h-screen w-full flex overflow-x-hidden relative"
       style={{ fontFamily: "Inter, sans-serif", scrollbarWidth: "none" }}
     >
       <style>{`::-webkit-scrollbar { display: none; }`}</style>
@@ -272,7 +272,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
       </div>
 
       {/* ── Right panel — auth form ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-12 relative z-10">
         {/* Back */}
         <motion.button
           initial={{ opacity: 0 }}
@@ -303,7 +303,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
         >
           {/* Glassmorphism card */}
           <div
-            className="rounded-3xl p-8 relative overflow-hidden"
+            className="rounded-3xl p-6 sm:p-8 relative overflow-hidden"
             style={{
               background: isDark ? "#000000" : "rgba(255,255,255,0.80)",
               backdropFilter: "blur(20px)",
