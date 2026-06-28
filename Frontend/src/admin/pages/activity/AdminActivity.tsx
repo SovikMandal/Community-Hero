@@ -14,6 +14,7 @@ import {
 // Status → accent colour (matches the dashboard palette).
 const STATUS_FG: Record<IssueStatus, string> = {
   REPORTED: "#D97706",
+  ACCEPTED: "#0EA5E9",
   VERIFIED: "#2563EB",
   ASSIGNED: "#7C3AED",
   ENGINEER_VISITED: "#0891B2",
@@ -27,6 +28,8 @@ function activityLabel(e: AdminActivityEvent): string {
   switch (e.status) {
     case "REPORTED":
       return "New report received";
+    case "ACCEPTED":
+      return "Report accepted";
     case "VERIFIED":
       return "Report verified";
     case "ASSIGNED":

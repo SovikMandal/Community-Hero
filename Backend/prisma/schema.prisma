@@ -57,6 +57,7 @@ enum PriorityLevel {
 // Mirrors the progress timeline (Feature 13)
 enum IssueStatus {
   REPORTED
+  ACCEPTED
   VERIFIED
   ASSIGNED
   ENGINEER_VISITED

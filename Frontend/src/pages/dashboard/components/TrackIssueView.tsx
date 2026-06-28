@@ -13,6 +13,7 @@ interface TrackIssueViewProps {
 /** Ordered lifecycle stages an issue passes through. */
 const STATUS_STAGES: { status: IssueStatus; label: string; defaultDesc: string }[] = [
   { status: "REPORTED",          label: "Report submitted",   defaultDesc: "Your issue was received and assigned a tracking ID." },
+  { status: "ACCEPTED",          label: "Accepted",           defaultDesc: "Your report was accepted for review." },
   { status: "VERIFIED",          label: "Verified",           defaultDesc: "The issue has been verified by the community or staff." },
   { status: "ASSIGNED",          label: "Assigned",           defaultDesc: "Department notified and case queued." },
   { status: "ENGINEER_VISITED",  label: "Field inspection",   defaultDesc: "An officer has visited the site." },

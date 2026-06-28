@@ -40,11 +40,21 @@ import { GridBackground } from "../../../components/GridBackground";
 /** Ordered lifecycle stages an issue passes through (mirrors the track page). */
 const STATUS_STAGES: { status: IssueStatus; label: string; defaultDesc: string }[] = [
   { status: "REPORTED",         label: "Report submitted", defaultDesc: "The issue was received and assigned a tracking ID." },
+  { status: "ACCEPTED",         label: "Accepted",         defaultDesc: "The report was accepted for review by an administrator." },
   { status: "VERIFIED",         label: "Verified",         defaultDesc: "The issue has been verified by the community or staff." },
   { status: "ASSIGNED",         label: "Assigned",         defaultDesc: "Department notified and case queued." },
   { status: "ENGINEER_VISITED", label: "Field inspection", defaultDesc: "An officer has visited the site." },
   { status: "REPAIR_STARTED",   label: "Repair started",   defaultDesc: "Work is in progress." },
   { status: "COMPLETED",        label: "Completed",        defaultDesc: "Issue resolved." },
+];
+
+// Hardcoded field inspectors a department can assign to a report.
+const FIELD_INSPECTORS = [
+  "Rajesh Kumar",
+  "Anita Sharma",
+  "Vikram Singh",
+  "Priya Menon",
+  "Arjun Reddy",
 ];
 
 export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: boolean; mode?: "admin" | "department" }) {
@@ -67,6 +77,9 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [generatingReason, setGeneratingReason] = useState(false);
+  // Department mode: client-side "accepted the assignment" gate. It's also
+  // implied once a field inspector has been assigned (status ENGINEER_VISITED+).
+  const [deptAcceptedLocal, setDeptAcceptedLocal] = useState(false);
 
   const loadIssue = useCallback(() => {
     if (!id) return Promise.resolve();
@@ -116,6 +129,11 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
   );
 
   const handleStatus = (status: IssueStatus) => id && runAction(() => admin.issues.updateStatus(id, status));
+
+  // Status change with an explicit timeline note (used by department actions:
+  // inspector assignment, work-progress changes, issue resolution).
+  const handleStatusNote = (status: IssueStatus, note: string) =>
+    id && runAction(() => admin.issues.updateStatus(id, status, note));
 
   const handleAssign = (departmentId: string) => {
     if (!id || !departmentId) return;
@@ -222,6 +240,20 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
   const accepted = currentIndex >= stageOrder.indexOf("VERIFIED");
   // Department progress actions unlock once an admin has routed (assigned) it.
   const routed = currentIndex >= stageOrder.indexOf("ASSIGNED");
+  // A field inspector has been assigned once the report reached ENGINEER_VISITED.
+  const inspectorAssigned = currentIndex >= stageOrder.indexOf("ENGINEER_VISITED");
+  // The department has taken on the case if it accepted locally or already
+  // assigned an inspector (which persists the acceptance).
+  const deptAccepted = deptAcceptedLocal || inspectorAssigned;
+  // Recover the assigned inspector's name from the ENGINEER_VISITED note.
+  const inspectorName = (() => {
+    const ev = [...(issue.timeline ?? [])].reverse().find((e) => e.status === "ENGINEER_VISITED");
+    const m = ev?.note?.match(/inspector assigned:\s*(.+)/i);
+    return m ? m[1].trim() : null;
+  })();
+  // Current work-progress dropdown value derived from the live status.
+  const workValue: IssueStatus =
+    issue.status === "COMPLETED" ? "COMPLETED" : issue.status === "REPAIR_STARTED" ? "REPAIR_STARTED" : "ENGINEER_VISITED";
 
   const innerBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(244,244,245,0.4)";
   const timelineBg = isDark ? "rgba(255,255,255,0.02)" : "rgba(244,244,245,0.3)";
@@ -271,11 +303,12 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
           </div>
 
           {/* Accept / Reject actions */}
-          {!isDepartment && (
           <div className="grid grid-cols-2 gap-3 mx-5">
             <button
-              onClick={() => handleStatus("VERIFIED")}
-              disabled={busy || locked || isRejected || currentIndex >= stageOrder.indexOf("VERIFIED")}
+              onClick={() => (isDepartment ? setDeptAcceptedLocal(true) : handleStatus("ACCEPTED"))}
+              disabled={isDepartment
+                ? (busy || locked || !routed || deptAccepted)
+                : (busy || locked || isRejected || currentIndex >= stageOrder.indexOf("ACCEPTED"))}
               className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50"
               style={{ background: "#16A34A" }}
             >
@@ -290,7 +323,6 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
               <X className="w-4 h-4" /> Reject report
             </button>
           </div>
-          )}
 
           {/* User details */}
           {/* User details — report creator + everyone who merged a duplicate */}
@@ -498,41 +530,94 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
                   <Clock className="w-3.5 h-3.5" /> This report hasn't been routed to your department yet. Actions unlock once an admin assigns it.
                 </div>
               )}
-              <div className="grid gap-3 sm:grid-cols-3">
-                <button
-                  onClick={() => handleStatus("ENGINEER_VISITED")}
-                  disabled={busy || locked || !routed || currentIndex >= stageOrder.indexOf("ENGINEER_VISITED")}
-                  className={actionBtn + " border"}
-                  style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
-                >
-                  <span className="flex items-center gap-2"><Search className="w-4 h-4 text-blue-500" /> Field inspection</span>
-                </button>
-                <button
-                  onClick={() => handleStatus("REPAIR_STARTED")}
-                  disabled={busy || locked || !routed || currentIndex >= stageOrder.indexOf("REPAIR_STARTED")}
-                  className={actionBtn + " border"}
-                  style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
-                >
-                  <span className="flex items-center gap-2"><PlayCircle className="w-4 h-4 text-amber-500" /> Work in progress</span>
-                </button>
-                <button
-                  onClick={() => handleStatus("COMPLETED")}
-                  disabled={busy || locked || !routed}
-                  className={actionBtn + " text-white"}
-                  style={{ background: "#16A34A" }}
-                >
-                  <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Issue resolved</span>
-                </button>
-              </div>
+
+              {routed && !deptAccepted && !locked && (
+                <div className="rounded-2xl border px-4 py-2.5 text-xs font-medium flex items-center gap-2" style={{ background: "rgba(37,99,235,0.08)", borderColor: "rgba(37,99,235,0.30)", color: "#2563EB" }}>
+                  <Clock className="w-3.5 h-3.5" /> Accept the report (top of the page) to begin handling it, or reject it.
+                </div>
+              )}
+
+              {routed && deptAccepted && (
+                <div className="flex flex-col gap-4">
+                  {/* Assign field inspector */}
+                  <div>
+                    <div className="mb-1.5 text-xs font-medium" style={{ color: t.textSub }}>Field inspector</div>
+                    {inspectorAssigned ? (
+                      <div className="flex items-center justify-between gap-2 rounded-2xl border px-4 py-3" style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}>
+                        <span className="flex items-center gap-2 text-sm font-semibold">
+                          <UserIcon className="w-4 h-4 text-blue-500" /> {inspectorName ?? "Assigned"}
+                        </span>
+                        <span className="text-xs" style={{ color: t.textSub }}>Assigned</span>
+                      </div>
+                    ) : (
+                      <select
+                        defaultValue=""
+                        onChange={(e) => e.target.value && handleStatusNote("ENGINEER_VISITED", `Field inspector assigned: ${e.target.value}`)}
+                        disabled={busy || locked}
+                        className="w-full rounded-2xl border px-4 py-3 text-sm font-medium outline-none disabled:opacity-50"
+                        style={{ background: isDark ? "#18181B" : "#FFFFFF", borderColor: t.inputBorder, color: isDark ? "#E5E7EB" : "#0F172A" }}
+                      >
+                        <option value="" disabled style={{ background: isDark ? "#18181B" : "#FFFFFF", color: isDark ? "#9CA3AF" : "#64748B" }}>Assign a field inspector…</option>
+                        {FIELD_INSPECTORS.map((name) => (
+                          <option key={name} value={name} style={{ background: isDark ? "#18181B" : "#FFFFFF", color: isDark ? "#E5E7EB" : "#0F172A" }}>{name}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Work progress + issue resolved (after an inspector is assigned) */}
+                  {inspectorAssigned && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <div className="mb-1.5 text-xs font-medium" style={{ color: t.textSub }}>Work progress</div>
+                        <select
+                          value={workValue}
+                          onChange={(e) => {
+                            const v = e.target.value as IssueStatus;
+                            const note = v === "REPAIR_STARTED" ? "Work in progress" : v === "COMPLETED" ? "Work completed" : "Work not started";
+                            handleStatusNote(v, note);
+                          }}
+                          disabled={busy || locked}
+                          className="w-full rounded-2xl border px-4 py-3 text-sm font-medium outline-none disabled:opacity-50"
+                          style={{ background: isDark ? "#18181B" : "#FFFFFF", borderColor: t.inputBorder, color: isDark ? "#E5E7EB" : "#0F172A" }}
+                        >
+                          <option value="ENGINEER_VISITED" style={{ background: isDark ? "#18181B" : "#FFFFFF", color: isDark ? "#E5E7EB" : "#0F172A" }}>Not started</option>
+                          <option value="REPAIR_STARTED" style={{ background: isDark ? "#18181B" : "#FFFFFF", color: isDark ? "#E5E7EB" : "#0F172A" }}>In progress</option>
+                          <option value="COMPLETED" style={{ background: isDark ? "#18181B" : "#FFFFFF", color: isDark ? "#E5E7EB" : "#0F172A" }}>Completed</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => handleStatusNote("COMPLETED", "Issue resolved")}
+                          disabled={busy || locked}
+                          className={actionBtn + " w-full justify-center text-white"}
+                          style={{ background: "#16A34A" }}
+                        >
+                          <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Issue resolved</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             <>
           {!accepted && !locked && (
             <div className="mb-4 rounded-2xl border px-4 py-2.5 text-xs font-medium flex items-center gap-2" style={{ background: "rgba(217,119,6,0.10)", borderColor: "rgba(217,119,6,0.35)", color: "#D97706" }}>
-              <Clock className="w-3.5 h-3.5" /> Accept the report first to enable these actions.
+              <Clock className="w-3.5 h-3.5" /> Verify the report first to enable these actions.
             </div>
           )}
           <div className="grid gap-3 sm:grid-cols-3">
+            <button
+              onClick={() => handleStatus("VERIFIED")}
+              disabled={busy || locked || currentIndex < stageOrder.indexOf("ACCEPTED") || currentIndex >= stageOrder.indexOf("VERIFIED")}
+              className={actionBtn + " border"}
+              style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
+            >
+              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Mark verified</span>
+            </button>
+
             {assigning ? (
               <select
                 autoFocus
@@ -565,22 +650,20 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
               </button>
             )}
 
+            {/* Send the routing request to the selected department. The
+                department then accepts or rejects it from its report view. */}
             <button
-              onClick={() => handleStatus("VERIFIED")}
-              disabled={busy || locked || currentIndex >= stageOrder.indexOf("VERIFIED")}
-              className={actionBtn + " border"}
-              style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
+              onClick={() => handleStatusNote("ASSIGNED", `Routed to ${issue.department?.name ?? "department"}`)}
+              disabled={busy || locked || !accepted || !issue.department || currentIndex >= stageOrder.indexOf("ASSIGNED")}
+              className={actionBtn + (currentIndex >= stageOrder.indexOf("ASSIGNED") ? " border" : " text-white")}
+              style={currentIndex >= stageOrder.indexOf("ASSIGNED")
+                ? { borderColor: t.inputBorder, color: t.text, background: innerBg }
+                : { background: "#2563EB" }}
             >
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Mark verified</span>
-            </button>
-
-            <button
-              onClick={() => handleStatus("COMPLETED")}
-              disabled={busy || locked || !accepted}
-              className={actionBtn + " border"}
-              style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
-            >
-              <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Mark completed</span>
+              <span className="flex items-center gap-2">
+                <Send className="w-4 h-4" />
+                {currentIndex >= stageOrder.indexOf("ASSIGNED") ? "Request sent" : "Route to department"}
+              </span>
             </button>
           </div>
             </>

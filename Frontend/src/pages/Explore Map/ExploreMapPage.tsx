@@ -27,6 +27,7 @@ interface ExploreMapPageProps {
 
 const STATUS_OPTIONS: IssueStatus[] = [
   "REPORTED",
+  "ACCEPTED",
   "VERIFIED",
   "ASSIGNED",
   "ENGINEER_VISITED",

@@ -21,6 +21,7 @@ export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "VERY_HIGH";
 export type PriorityLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type IssueStatus =
   | "REPORTED"
+  | "ACCEPTED"
   | "VERIFIED"
   | "ASSIGNED"
   | "ENGINEER_VISITED"

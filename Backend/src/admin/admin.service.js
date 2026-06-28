@@ -10,6 +10,7 @@ import { generateRejectionReason as aiGenerateRejectionReason } from "../service
 
 const ISSUE_STATUSES = [
   "REPORTED",
+  "ACCEPTED",
   "VERIFIED",
   "ASSIGNED",
   "ENGINEER_VISITED",
@@ -133,6 +134,13 @@ export async function listIssues(query = {}) {
     ];
   }
 
+  // "routed" restricts to reports actually handed to a department (ASSIGNED
+  // onward) — used by the department report list so unrouted reports (still in
+  // the admin queue) never appear there. An explicit status filter wins.
+  if (!filters.status && String(query.routed) === "true") {
+    where.status = { in: ["ASSIGNED", "ENGINEER_VISITED", "REPAIR_STARTED", "COMPLETED", "REJECTED"] };
+  }
+
   const [items, total] = await Promise.all([
     repo.findIssues({ where, skip, take: limit }),
     repo.countIssues(where),
@@ -244,7 +252,7 @@ const assignSchema = z.object({
 });
 
 export async function assignIssue(id, body, actorId) {
-  const { departmentId, note } = assignSchema.parse(body ?? {});
+  const { departmentId } = assignSchema.parse(body ?? {});
 
   const [existing, department] = await Promise.all([
     repo.findIssueById(id),
@@ -253,25 +261,17 @@ export async function assignIssue(id, body, actorId) {
   if (!existing) throw ApiError.notFound("Issue not found");
   if (!department) throw ApiError.notFound("Department not found");
 
-  const nextStatus = existing.status === "REPORTED" ? "ASSIGNED" : existing.status;
-  const issue = await repo.updateIssue(id, {
-    departmentId,
-    status: nextStatus,
-    timeline: {
-      create: {
-        status: nextStatus,
-        note: note || `Routed to ${department.name}`,
-        actorId,
-      },
-    },
-  });
+  // Selecting a department no longer advances the lifecycle. The admin sends an
+  // explicit "route" request afterwards (PATCH status -> ASSIGNED), which the
+  // department then accepts or rejects.
+  const issue = await repo.updateIssue(id, { departmentId });
 
   await recordAudit(
     actorId,
     "ISSUE_ASSIGNED",
     "Issue",
     id,
-    `Assigned to ${department.name}`,
+    `Department set to ${department.name}`,
     { departmentId, departmentName: department.name }
   );
 
@@ -319,24 +319,23 @@ export async function listDepartmentsWithStats() {
     if (!byDept.has(g.departmentId)) byDept.set(g.departmentId, emptyStats());
     const s = byDept.get(g.departmentId);
     const n = g._count._all;
-    s.total += n;
+    // Only count reports actually routed to the department (ASSIGNED onward).
+    // REPORTED/VERIFIED are still in the admin's queue and must not appear in
+    // a department's totals.
     switch (g.status) {
-      case "REPORTED":
-        s.reported += n;
-        break;
-      case "VERIFIED":
-        s.verified += n;
-        break;
       case "ASSIGNED":
       case "ENGINEER_VISITED":
       case "REPAIR_STARTED":
         s.inProgress += n;
+        s.total += n;
         break;
       case "COMPLETED":
         s.resolved += n;
+        s.total += n;
         break;
       case "REJECTED":
         s.rejected += n;
+        s.total += n;
         break;
       default:
         break;

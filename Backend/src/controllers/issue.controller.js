@@ -404,6 +404,7 @@ export const getMyActivity = asyncHandler(async (req, res) => {
 const statusSchema = z.object({
   status: z.enum([
     "REPORTED",
+    "ACCEPTED",
     "VERIFIED",
     "ASSIGNED",
     "ENGINEER_VISITED",

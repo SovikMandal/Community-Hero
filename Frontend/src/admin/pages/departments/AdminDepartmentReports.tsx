@@ -25,6 +25,7 @@ import { GridBackground } from "../../../components/GridBackground";
 
 const STATUS_COLORS: Record<IssueStatus, { fg: string; bg: string }> = {
   REPORTED:         { fg: "#D97706", bg: "rgba(217,119,6,0.12)" },
+  ACCEPTED:         { fg: "#0EA5E9", bg: "rgba(14,165,233,0.12)" },
   VERIFIED:         { fg: "#2563EB", bg: "rgba(37,99,235,0.12)" },
   ASSIGNED:         { fg: "#7C3AED", bg: "rgba(124,58,237,0.12)" },
   ENGINEER_VISITED: { fg: "#0891B2", bg: "rgba(8,145,178,0.12)" },
@@ -73,7 +74,7 @@ export function AdminDepartmentReports({ isDark }: { isDark?: boolean }) {
       if (!id) return Promise.resolve();
       setLoading(true);
       return admin.issues
-        .list({ departmentId: id, page: p, limit: PAGE_SIZE })
+        .list({ departmentId: id, page: p, limit: PAGE_SIZE, routed: true })
         .then((res) => {
           setIssues(res.items);
           setPagination(res.pagination ?? null);

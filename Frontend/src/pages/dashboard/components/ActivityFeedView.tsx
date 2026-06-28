@@ -19,6 +19,7 @@ interface ActivityFeedViewProps {
 
 const STATUS_COLOR: Record<IssueStatus, string> = {
   REPORTED: "#2563EB",
+  ACCEPTED: "#0EA5E9",
   VERIFIED: "#7C3AED",
   ASSIGNED: "#F59E0B",
   ENGINEER_VISITED: "#0891B2",
@@ -32,6 +33,8 @@ function activityLabel(e: MyActivityEvent): string {
   switch (e.status) {
     case "REPORTED":
       return "Report submitted";
+    case "ACCEPTED":
+      return "Report accepted";
     case "VERIFIED":
       return "Report verified";
     case "ASSIGNED":

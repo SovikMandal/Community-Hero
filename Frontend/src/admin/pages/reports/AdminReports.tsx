@@ -31,6 +31,7 @@ function priorityLabel(priority: string): string {
 // Badge colours per lifecycle status (text + subtle background).
 const STATUS_COLORS: Record<IssueStatus, { fg: string; bg: string }> = {
   REPORTED:         { fg: "#D97706", bg: "rgba(217,119,6,0.12)" },
+  ACCEPTED:         { fg: "#0EA5E9", bg: "rgba(14,165,233,0.12)" },
   VERIFIED:         { fg: "#2563EB", bg: "rgba(37,99,235,0.12)" },
   ASSIGNED:         { fg: "#7C3AED", bg: "rgba(124,58,237,0.12)" },
   ENGINEER_VISITED: { fg: "#0891B2", bg: "rgba(8,145,178,0.12)" },
@@ -41,6 +42,7 @@ const STATUS_COLORS: Record<IssueStatus, { fg: string; bg: string }> = {
 
 const STATUS_OPTIONS: IssueStatus[] = [
   "REPORTED",
+  "ACCEPTED",
   "VERIFIED",
   "ASSIGNED",
   "ENGINEER_VISITED",

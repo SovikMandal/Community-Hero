@@ -188,6 +188,8 @@ export interface AdminListIssuesParams {
   departmentId?: string;
   /** Free-text search over title/address. */
   q?: string;
+  /** Restrict to reports routed to a department (ASSIGNED onward). */
+  routed?: boolean;
 }
 
 export const admin = {
@@ -208,7 +210,7 @@ export const admin = {
   // ── Reports (issues) ─────────────────────────────────────────────────────
   issues: {
     list(params: AdminListIssuesParams = {}): Promise<PaginatedResult<Issue>> {
-      const query: Record<string, string | number | undefined> = { ...params };
+      const query: Record<string, string | number | boolean | undefined> = { ...params };
       return api.getRaw<Issue[]>("/admin/issues", query).then((r) => ({
         items: r.data,
         pagination: r.pagination,
