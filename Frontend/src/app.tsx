@@ -18,6 +18,8 @@ import {
   fetchCurrentUser,
   getCachedUser,
   login,
+  adminLoginRequest,
+  adminLoginVerify,
   beginGoogleAuth,
   logout,
   register,
@@ -84,6 +86,19 @@ export default function App() {
     navigate(loggedIn.role === "ADMIN" ? "/admin" : "/dashboard", { replace: true });
   };
 
+  // Admin two-factor login. Step 1 validates credentials and triggers the OTP
+  // email; step 2 confirms the code, establishes the session, and enters the
+  // admin panel. Credential / non-admin errors surface in step 1.
+  const handleAdminLoginRequest = async (email: string, password: string) => {
+    await adminLoginRequest({ email, password });
+  };
+
+  const handleAdminLoginVerify = async (email: string, otp: string) => {
+    const loggedIn = await adminLoginVerify(email, otp);
+    setUser(loggedIn);
+    navigate("/admin", { replace: true });
+  };
+
   const handleRegister = async (input: RegisterInput) => {
     setUser(await register(input));
     navigate("/dashboard", { replace: true });
@@ -126,6 +141,8 @@ export default function App() {
           onBack={() => navigate("/")}
           onEnter={() => navigate(getCachedUser()?.role === "ADMIN" ? "/admin" : "/dashboard")}
           onLogin={handleLogin}
+          onAdminLoginRequest={handleAdminLoginRequest}
+          onAdminLoginVerify={handleAdminLoginVerify}
           onRegister={handleRegister}
           onGoogle={beginGoogleAuth}
         />

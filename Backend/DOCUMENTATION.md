@@ -213,7 +213,7 @@ Citizen submits report (text + optional image/video)
    (gemini.service.js)          estimatedDiameter, summary           [Feat 1, 12]
         │
         ▼
-2. findDuplicates()           → open issues of same category within ~75 m
+2. findDuplicates()           → open issues of same category within ~100 m
    (duplicate.service.js)       If found → 409 with the existing issue [Feat 2]
         │  (skipped if forceCreate=true)
         ▼
@@ -241,6 +241,25 @@ Citizen submits report (text + optional image/video)
 
 `priority.service.js → computePriority()`
 
+Every report gets a **score (0–100)** and a **level**. The inputs come from two
+places: the **AI** (Gemini Vision grading the image) supplies `severity` and
+`isEmergency`; the **report context** supplies `trafficLevel`, `peopleAffected`,
+`schoolNearby`, and `hospitalNearby`.
+
+| Signal | Source | Range / values |
+|--------|--------|----------------|
+| `severity` | AI (Gemini Vision) | LOW / MEDIUM / HIGH / CRITICAL |
+| `isEmergency` | AI (Gemini Vision) | true / false |
+| `trafficLevel` | report context | 0–5 |
+| `peopleAffected` | report context | count (capped at 500) |
+| `schoolNearby` | report context | true / false |
+| `hospitalNearby` | report context | true / false |
+
+**1. Emergency short-circuit** — if `isEmergency` is true, the score is forced to
+**100 / CRITICAL** regardless of the other signals.
+
+**2. Otherwise**, each signal becomes a multiplier so they compound:
+
 ```
 severityWeight   = { LOW:1, MEDIUM:2, HIGH:3, CRITICAL:4 }
 trafficFactor    = 1 + min(trafficLevel,5)/5        // 1.0 – 2.0
@@ -250,7 +269,7 @@ hospitalFactor   = hospitalNearby ? 1.35 : 1
 
 rawScore = severityWeight * 6.25 * trafficFactor * peopleFactor
                           * schoolFactor * hospitalFactor
-score    = min(rawScore, 100)
+score    = round(min(rawScore, 100), 2)
 
 level: score ≥ 75 → CRITICAL
        score ≥ 50 → HIGH
@@ -258,16 +277,46 @@ level: score ≥ 75 → CRITICAL
        else       → LOW
 ```
 
-If `isEmergency` is true, the score is forced to **100 / CRITICAL**.
+The constant `6.25` (= 100 ⁄ 16) calibrates severity alone to a 6.25–25 baseline;
+the multipliers then scale toward the 100 ceiling. A nearby hospital (×1.35)
+weighs slightly more than a school (×1.25), and traffic or crowd size can each
+double the score at their maximum.
+
+**Worked examples**
+
+- *Exposed live wire* → `isEmergency = true` → **100 / CRITICAL** (short-circuit).
+- *Pothole on a busy road near a school* — HIGH severity, traffic 4/5, 200 people,
+  school nearby: `3 × 6.25 × 1.8 × 1.4 × 1.25 = 59.06` → **HIGH**.
+- *Faded road paint on a quiet street* — LOW severity, no traffic, no crowd:
+  `1 × 6.25 = 6.25` → **LOW**.
 
 ### Duplicate detection
 
 `duplicate.service.js → findDuplicates()`
 
-- Considers only **open** issues (`REPORTED`, `VERIFIED`, `ASSIGNED`,
-  `ENGINEER_VISITED`, `REPAIR_STARTED`) of the **same category**.
-- Bounding-box DB prefilter, then exact **Haversine** distance.
-- Default radius **75 m**; returns matches sorted by distance.
+A candidate is treated as a duplicate only when **all three** conditions hold:
+
+1. **Same category** — the AI-assigned `category` matches.
+2. **Still open** — status is one of `REPORTED`, `VERIFIED`, `ASSIGNED`,
+   `ENGINEER_VISITED`, `REPAIR_STARTED` (completed/rejected issues never count).
+3. **Within the radius** — default **100 m** (`DEFAULT_RADIUS_M`).
+
+Detection runs in two stages for performance:
+
+- **Bounding-box prefilter (DB).** A degrees-per-meter box limits the scan:
+  ```
+  latDelta = radiusMeters / 111000
+  lngDelta = radiusMeters / (111000 * cos(latitude))   // longitude shrinks toward the poles
+  ```
+  Only same-category, open issues whose `latitude`/`longitude` fall inside the
+  box are fetched.
+- **Exact Haversine distance (code).** Each candidate is measured with the
+  great-circle formula (`distanceMeters()`, `R = 6,371,000 m`); anything beyond
+  the radius is filtered out and the rest are **sorted nearest-first**.
+
+On a match, `POST /api/issues` returns **409** with the nearest issue and its
+distance (see the 409 body above). The citizen can `POST /issues/:id/support`
+the existing report, or resend with `forceCreate=true` to file a separate one.
 
 ### Graceful fallbacks
 

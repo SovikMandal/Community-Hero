@@ -83,6 +83,25 @@ export async function login(input: LoginInput): Promise<User> {
   return merged;
 }
 
+// ── Admin two-factor login (OTP) ─────────────────────────────────────────────
+
+/** Step 1 of admin login: validate credentials on the server and trigger an
+ *  OTP email. Throws ApiError on bad credentials or a non-admin account. No
+ *  session is established yet. */
+export async function adminLoginRequest(input: LoginInput): Promise<void> {
+  await api.post("/auth/admin/login", input);
+}
+
+/** Step 2 of admin login: confirm the emailed OTP. On success the session
+ *  tokens are stored and the admin user is returned. */
+export async function adminLoginVerify(email: string, otp: string): Promise<User> {
+  const { user, token, refreshToken } = await api.post<AuthResult>("/auth/admin/verify", { email, otp });
+  setToken(token);
+  setRefreshToken(refreshToken);
+  cacheUser(user);
+  return user;
+}
+
 /** Starts the Google OAuth 2.0 redirect flow. The browser leaves the SPA and
  *  goes to Google's "Choose an account" screen; after consent, Google → backend
  *  → back to /auth/callback with the session tokens. (Full-page navigation.) */

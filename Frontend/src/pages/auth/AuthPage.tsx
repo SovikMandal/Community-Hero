@@ -25,11 +25,13 @@ interface AuthPageProps {
   onBack: () => void;
   onEnter: () => void;
   onLogin: (email: string, password: string, asAdmin?: boolean) => Promise<void>;
+  onAdminLoginRequest: (email: string, password: string) => Promise<void>;
+  onAdminLoginVerify: (email: string, otp: string) => Promise<void>;
   onRegister: (input: RegisterInput) => Promise<void>;
   onGoogle: () => void;
 }
 
-export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister, onGoogle }: AuthPageProps) {
+export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLoginRequest, onAdminLoginVerify, onRegister, onGoogle }: AuthPageProps) {
   const [tab, setTab] = useState<"login" | "signup" | "admin">("login");
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -46,6 +48,8 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
   const [otpCode, setOtpCode] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
+  // Distinguishes the email-verification OTP (signup) from the admin 2FA OTP.
+  const [otpMode, setOtpMode] = useState<"signup" | "admin">("signup");
 
   // Forgot-password state
   const [showForgot, setShowForgot] = useState(false);
@@ -114,15 +118,25 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
 
     setLoading("form");
     try {
-      if (tab === "login" || tab === "admin") {
-        await onLogin(form.email, form.password, tab === "admin");
+      if (tab === "login") {
+        await onLogin(form.email, form.password);
         setLoading(null);
         setDone(true);
         setTimeout(onEnter, 900);
+      } else if (tab === "admin") {
+        // Admin 2FA: validate credentials server-side, then email an OTP and
+        // open the verification modal. The session is only created on verify.
+        await onAdminLoginRequest(form.email, form.password);
+        setLoading(null);
+        setOtpMode("admin");
+        setOtpCode("");
+        setOtpError(null);
+        setShowOtp(true);
       } else {
         // Send OTP for email verification before registration
         await otpApi.send(form.email);
         setLoading(null);
+        setOtpMode("signup");
         setShowOtp(true);
       }
     } catch (err) {
@@ -139,8 +153,13 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
     setOtpError(null);
     setOtpLoading(true);
     try {
-      await otpApi.verify(form.email, otpCode);
-      await onRegister({ name: form.name, email: form.email, password: form.password, avatar, avatarFile });
+      if (otpMode === "admin") {
+        // Confirm the admin 2FA code; this establishes the admin session.
+        await onAdminLoginVerify(form.email, otpCode);
+      } else {
+        await otpApi.verify(form.email, otpCode);
+        await onRegister({ name: form.name, email: form.email, password: form.password, avatar, avatarFile });
+      }
       setOtpLoading(false);
       setShowOtp(false);
       setDone(true);
@@ -673,7 +692,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
               <div className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: isDark ? "rgba(37,99,235,0.15)" : "#EFF6FF" }}>
                 <Mail className="w-6 h-6 text-blue-500" />
               </div>
-              <h3 className="font-bold text-xl mb-1" style={{ color: isDark ? "#E2E8F0" : "#0F172A" }}>Verify your email</h3>
+              <h3 className="font-bold text-xl mb-1" style={{ color: isDark ? "#E2E8F0" : "#0F172A" }}>{otpMode === "admin" ? "Admin verification" : "Verify your email"}</h3>
               <p className="text-sm mb-6" style={{ color: isDark ? "#94A3B8" : "#64748B" }}>
                 We sent a 6-digit code to <strong style={{ color: isDark ? "#E2E8F0" : "#0F172A" }}>{form.email}</strong>
               </p>
@@ -700,7 +719,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onRegister,
                 className="w-full py-3.5 rounded-2xl font-semibold text-sm text-white mb-3"
                 style={{ background: "#2563EB", opacity: otpCode.length < 6 || otpLoading ? 0.6 : 1 }}
               >
-                {otpLoading ? "Verifying..." : "Verify & Create Account"}
+                {otpLoading ? "Verifying..." : otpMode === "admin" ? "Verify & Sign In" : "Verify & Create Account"}
               </button>
               <button
                 onClick={() => { setShowOtp(false); setOtpCode(""); setOtpError(null); }}

@@ -8,7 +8,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { signToken, signRefreshToken, verifyRefreshToken } from "../utils/token.js";
 import { sendCreated, sendSuccess } from "../utils/response.js";
 import { uploadAvatar } from "../services/cloudinary.service.js";
-import { sendPasswordResetEmail } from "../services/otp.service.js";
+import { sendPasswordResetEmail, sendOtp, verifyOtp } from "../services/otp.service.js";
 import { env, isProd } from "../config/env.js";
 import { isGoogleAuthEnabled, getGoogleAuthUrl, getGoogleProfile } from "../config/google.js";
 
@@ -23,6 +23,12 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+});
+
+// Admin 2FA: step 2 submits the 6-digit code that was emailed in step 1.
+const adminVerifySchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6),
 });
 
 const forgotPasswordSchema = z.object({
@@ -87,7 +93,59 @@ export const login = asyncHandler(async (req, res) => {
   return sendSuccess(res, { user: publicUser(user), ...tokens }, "Login successful");
 });
 
-// ── Google Sign-In (OAuth 2.0 authorization-code flow) ──────────────────────
+// ── Admin two-factor login (OTP) ─────────────────────────────────────────────
+// Admins sign in with email + password, then must confirm a one-time code
+// emailed to them before any session token is issued.
+
+/**
+ * POST /api/auth/admin/login
+ * Step 1: validate admin credentials and email a 6-digit OTP. No token is
+ * issued yet. Credential errors use a generic message; the not-an-admin case is
+ * surfaced explicitly so a normal user understands why the Admin tab rejects them.
+ */
+export const adminLoginRequest = asyncHandler(async (req, res) => {
+  const { email, password } = loginSchema.parse(req.body);
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || !user.password) throw ApiError.unauthorized("Invalid credentials");
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) throw ApiError.unauthorized("Invalid credentials");
+
+  if (user.role !== "ADMIN") {
+    throw ApiError.forbidden("This account doesn't have admin access.");
+  }
+
+  try {
+    await sendOtp(user.email);
+  } catch (err) {
+    throw ApiError.internal("Failed to send verification code. Check SMTP configuration.");
+  }
+
+  return sendSuccess(res, { email: user.email }, "Verification code sent to your email");
+});
+
+/**
+ * POST /api/auth/admin/verify
+ * Step 2: verify the emailed OTP and, only then, issue session tokens. The OTP
+ * could only have been sent after a successful credential + admin-role check in
+ * step 1, so a valid code proves both factors.
+ */
+export const adminLoginVerify = asyncHandler(async (req, res) => {
+  const { email, otp } = adminVerifySchema.parse(req.body);
+
+  if (!verifyOtp(email, otp)) {
+    throw ApiError.badRequest("Invalid or expired verification code");
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.role !== "ADMIN") {
+    throw ApiError.forbidden("This account doesn't have admin access.");
+  }
+
+  const tokens = await generateTokens(user);
+  return sendSuccess(res, { user: publicUser(user), ...tokens }, "Login successful");
+});
 
 // Short-lived cookie holding the anti-CSRF state nonce between the redirect to
 // Google and the callback.
