@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Build output
+dist/
+build/
+dist-ssr/
+**/dist/
+**/build/
+coverage/
+
+# Prisma local databases
+**/prisma/*.db
+**/prisma/*.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Caches
+.cache/
+.vite/
+*.tsbuildinfo
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+*.suo
+*.sw?
+
+# VS Code (keep shared extension recommendations if you add them)
+.vscode/*
+!.vscode/extensions.json
+
+# Misc
+tmp/
+uploads/

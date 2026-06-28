@@ -1,0 +1,397 @@
+// Community Hero — Prisma schema
+// PostgreSQL data model supporting all 13 platform features.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  CITIZEN
+  OFFICER // department staff who update issue status
+  ADMIN
+}
+
+enum IssueCategory {
+  POTHOLE
+  WATER_LEAKAGE
+  GARBAGE
+  STREET_LIGHT
+  ROAD_DAMAGE
+  OPEN_MANHOLE
+  ILLEGAL_DUMPING
+  FALLEN_TREE
+  DRAINAGE_BLOCKAGE
+  OTHER
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// Mirrors the progress timeline (Feature 13)
+enum IssueStatus {
+  REPORTED
+  VERIFIED
+  ASSIGNED
+  ENGINEER_VISITED
+  REPAIR_STARTED
+  COMPLETED
+  REJECTED
+}
+
+enum VerificationAnswer {
+  YES
+  NO
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+// ── Admin module enums ───────────────────────────────────────────────────────
+
+// Every mutating admin action is recorded in the audit log under one of these.
+enum AdminActionType {
+  ISSUE_STATUS_UPDATED
+  ISSUE_ASSIGNED
+  ISSUE_DELETED
+  DEPARTMENT_CREATED
+  DEPARTMENT_UPDATED
+  DEPARTMENT_DELETED
+  USER_ROLE_UPDATED
+  USER_DELETED
+  ANNOUNCEMENT_CREATED
+  ANNOUNCEMENT_UPDATED
+  ANNOUNCEMENT_DELETED
+  SETTING_UPDATED
+}
+
+// Who an announcement is targeted at.
+enum AnnouncementAudience {
+  ALL
+  CITIZENS
+  OFFICERS
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CITIZEN)
+  refreshToken String?
+
+  // Password reset (hashed token + expiry) — set during "forgot password" flow
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  // Profile photo (Cloudinary secure URL)
+  avatar    String?
+
+  // Optional home location for "nearby" verification prompts (Feature 8)
+  latitude  Float?
+  longitude Float?
+
+  // Officers may belong to a department
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  issues        Issue[]        @relation("ReportedIssues")
+  votes         Vote[]
+  supports      Support[]
+  verifications Verification[]
+  chatMessages  ChatMessage[]
+  comments      Comment[]
+  uploadedImages IssueImage[]  @relation("UploadedImages")
+  timelineEvents TimelineEvent[] @relation("TimelineActor")
+
+  // Admin module back-relations
+  auditLogs       AdminAuditLog[] @relation("AdminAuditLogs")
+  announcements   Announcement[]  @relation("AuthoredAnnouncements")
+  updatedSettings SystemSetting[] @relation("UpdatedSettings")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
+// Feature 5: Department routing target
+model Department {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  users  User[]
+  issues Issue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// The canonical civic issue. Duplicate reports become Supports on an existing Issue.
+model Issue {
+  id          String  @id @default(cuid())
+  title       String
+  description String  @db.Text
+
+  // AI-generated fields (Features 1, 4)
+  aiSummary         String? @db.Text
+  estimatedDiameter String? // e.g. "2.4 meters" (free-form from Gemini)
+
+  category IssueCategory @default(OTHER)
+  severity Severity      @default(MEDIUM)
+  risk     RiskLevel     @default(MEDIUM)
+
+  // Priority scoring (Feature 3)
+  priorityScore Float         @default(0)
+  priority      PriorityLevel @default(MEDIUM)
+
+  // Emergency detection (Feature 12)
+  isEmergency Boolean @default(false)
+
+  status IssueStatus @default(REPORTED)
+
+  // Geo mapping (Feature 7)
+  latitude  Float
+  longitude Float
+  address   String?
+
+  // Context signals used by the priority engine (Feature 3)
+  trafficLevel    Int     @default(0) // 0-5
+  peopleAffected  Int     @default(0)
+  schoolNearby    Boolean @default(false)
+  hospitalNearby  Boolean @default(false)
+
+  reporterId String
+  reporter   User   @relation("ReportedIssues", fields: [reporterId], references: [id])
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  images        IssueImage[]
+  votes         Vote[]
+  supports      Support[]
+  verifications Verification[]
+  comments      Comment[]
+  timeline      TimelineEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([priority])
+  @@index([latitude, longitude])
+}
+
+// Feature 1: Uploaded media stored on Cloudinary
+model IssueImage {
+  id       String  @id @default(cuid())
+  url      String
+  publicId String // Cloudinary public_id for deletion
+  isVideo  Boolean @default(false)
+
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  // Who uploaded this media (reporter for the original photos, or the citizen
+  // who added evidence later). Used to authorize deletion of one's own photos.
+  uploadedById String?
+  uploadedBy   User?   @relation("UploadedImages", fields: [uploadedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([issueId])
+}
+
+// Community upvotes (Feature 7 marker counts / general support signal)
+model Vote {
+  id String @id @default(cuid())
+
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+}
+
+// Feature 2: When a duplicate is detected, the user "supports" the existing issue
+model Support {
+  id   String  @id @default(cuid())
+  note String?
+
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+}
+
+// Feature 8: Community verification (nearby users confirm an issue is real)
+model Verification {
+  id     String             @id @default(cuid())
+  answer VerificationAnswer
+
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+  @@index([issueId])
+}
+
+// Feature 13: Progress timeline entries
+model TimelineEvent {
+  id     String      @id @default(cuid())
+  status IssueStatus
+  note   String?
+
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  // Who triggered the event (optional - system events have no actor)
+  actorId String?
+  actor   User?   @relation("TimelineActor", fields: [actorId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([issueId])
+}
+
+// Feature 6: AI chat assistant conversation history
+model ChatMessage {
+  id      String   @id @default(cuid())
+  role    ChatRole
+  content String   @db.Text
+
+  // Optional: a chat thread can be scoped to a specific issue
+  issueId String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([issueId])
+}
+
+// Community discussion thread on an issue (Community page).
+model Comment {
+  id      String @id @default(cuid())
+  content String @db.Text
+
+  issueId String
+  issue   Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([issueId])
+  @@index([userId])
+}
+
+
+// ============================================================================
+// ADMIN MODULE MODELS
+// ============================================================================
+
+// Immutable record of every mutating action performed by an admin. Written
+// best-effort by the admin service so a logging failure never blocks the
+// underlying operation.
+model AdminAuditLog {
+  id         String          @id @default(cuid())
+  action     AdminActionType
+  entityType String // "Issue" | "User" | "Department" | "Announcement" | "Setting"
+  entityId   String?
+  summary    String
+  metadata   Json? // arbitrary before/after context
+
+  adminId String
+  admin   User   @relation("AdminAuditLogs", fields: [adminId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// Admin-published announcements surfaced to citizens/officers.
+model Announcement {
+  id        String               @id @default(cuid())
+  title     String
+  body      String               @db.Text
+  audience  AnnouncementAudience @default(ALL)
+  published Boolean              @default(false)
+
+  authorId String
+  author   User   @relation("AuthoredAnnouncements", fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+  @@index([audience])
+}
+
+// Key/value platform configuration editable from the admin panel.
+model SystemSetting {
+  id          String  @id @default(cuid())
+  key         String  @unique
+  value       Json
+  description String?
+
+  updatedById String?
+  updatedBy   User?   @relation("UpdatedSettings", fields: [updatedById], references: [id])
+
+  updatedAt DateTime @updatedAt
+}

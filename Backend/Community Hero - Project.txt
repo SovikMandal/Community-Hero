@@ -1,0 +1,254 @@
+Community Hero - Project
+------------------------------------------------------------------------------------------------------------------------------------------
+PROBLEM STATEMENT:-
+
+Communities face issues like:
+Potholes
+Water leakage
+Garbage overflow
+Broken street lights
+Damaged roads
+Open manholes
+Illegal dumping
+Fallen trees
+Drainage blockage
+
+People usually:
+Don't know where to complain.
+Complain multiple times.
+Can't track progress.
+Don't know if the issue was fixed.
+
+The challenge is to build an AI-powered platform that helps citizens identify, report, validate, track, and resolve community issues through collaboration and intelligent automation.
+------------------------------------------------------------------------------------------------------------------------------------------
+SOLUTION :-
+
+Citizen
+     │
+     ▼
+Upload image/video
+     │
+     ▼
+Gemini Vision
+     │
+ ┌──────────────┐
+ │What is it?   │
+ │How severe?   │
+ │Is location?  │
+ │Safety risk?  │
+ └──────────────┘
+     │
+     ▼
+AI Agent
+     │
+ ┌───────────────┐
+ │Duplicate?     │
+ │Nearest report?│
+ │Assign dept?   │
+ │Priority?      │
+ └───────────────┘
+     │
+     ▼
+Dashboard
+     │
+     ▼
+Community votes
+     │
+     ▼
+Issue resolved
+------------------------------------------------------------------------------------------------------------------------------------------
+FEATURES:-
+
+Feature 1: Smart Image Understanding
+User uploads: road.jpg, speak, write problem as a text
+Gemini analyzes:
+Category:
+Pothole
+Severity:
+High
+Estimated Diameter:
+2.4 meters
+Risk:
+Very High
+Suggested Department:
+Road Maintenance
+Summary:
+Large pothole on busy road.
+Immediate repair recommended.
+
+Feature 2: Duplicate Detection
+Suppose 50 people report the same pothole.
+Instead of:
+Issue #1
+Issue #2
+Issue #3
+Issue #4
+AI replies:
+This issue already exists.
+Do you want to support
+existing complaint?
+This avoids duplicate complaints.
+
+Feature 3: Auto Priority
+Instead of first-come-first-served:
+AI calculates:
+Severity × Traffic × People affected × School nearby × Hospital nearby -> Priority Score
+Example
+Garbage in park -> Priority = Medium
+Broken bridge -> Priority = Critical
+
+Feature 4: AI Summary
+Citizen writes:
+Road very bad.
+Many accidents.
+Please fix.
+Very dangerous.
+
+Gemini converts it into:
+Road contains multiple deep potholes.
+Several accidents have occurred.
+Immediate maintenance required.
+
+Feature 5: Department Routing
+AI automatically sends issues to:
+| Issue         | Department        |
+| ------------- | ----------------- |
+| Water leakage | Water Supply      |
+| Garbage       | Sanitation        |
+| Street light  | Electricity       |
+| Road damage   | Road Department   |
+| Tree fallen   | Forest Department |
+
+
+Feature 6: AI Chat Assistant
+Citizen asks:-
+Why is my complaint delayed?
+AI answers:-
+Current status:
+Waiting for municipal approval.
+Estimated completion:
+2 days.
+
+
+Feature 7: Geo Mapping
+Map shows
+🟢 Resolved
+🟡 In Progress
+🔴 Critical
+Clicking a marker displays:
+Image
+Status
+Votes
+Timeline
+
+
+Feature 8: Community Verification
+Instead of fake reports
+Nearby users receive:
+Can you verify this issue?
+They answer:
+✔ Yes
+✖ No
+
+
+Feature 9: Impact Dashboard
+Shows
+Total complaints
+Resolved %
+Average resolution time
+Most common issue
+Hotspot locations
+Department performance
+
+
+Feature 10: Predictive AI
+Suppose
+20 complaints
+Same road
+Same area
+Last month
+AI predicts:
+High probability of new potholes
+after heavy rainfall.
+
+
+Feature 11: Voice Reporting
+Citizen says
+There is a broken streetlight near the bus stand.
+AI converts speech to text, extracts:
+Issue
+Location
+Summary
+
+
+Feature 12: Emergency Detection
+User uploads image.
+Gemini detects:
+Electric wire on road
+Instead of normal priority:
+⚠ Emergency
+Immediate notification.
+
+
+Feature 13: Progress Timeline
+Reported
+
+↓
+
+Verified
+
+↓
+
+Assigned
+
+↓
+
+Engineer Visited
+
+↓
+
+Repair Started
+
+↓
+
+Completed
+
+------------------------------------------------------------------------------------------------------------------------------------------
+Tech-Stack Used
+Frontend:
+React/Vite
+Tailwind CSS
+shadcn ui (optional)
+Google Maps API / MapLibre
+
+Backend:
+Node.js
+Express
+
+Database:
+PostgreSQL (Prisma)
+
+Storage:
+Cloudinary
+
+AI:
+Gemini 2.5 Flash (Google AI Studio)
+Gemini Vision (image understanding)
+
+Authentication:
+JWT
+
+Deployment:
+Vercel (frontend)
+Render / Cloud Run (backend)
+
+------------------------------------------------------------------------------------------------------------------------------------------
+How to Maximize Your Hackathon Score:
+Evaluation Criterion	How to Address It
+Problem Solving & Impact	Reduce duplicate reports, prioritize urgent issues, improve transparency
+Agentic Depth	AI should analyze, route, prioritize, summarize, detect duplicates, and assist users—not just answer questions
+Innovation	Predictive insights, emergency detection, community verification, AI-powered routing
+Usage of Google Technologies	Use Google AI Studio (Gemini), Maps APIs, and optionally Firebase
+Product Experience	Clean UI, interactive map, clear issue timeline
+Technical Implementation	Robust backend, authentication, image uploads, scalable APIs
+Completeness	End-to-end workflow from reporting to resolution

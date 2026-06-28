@@ -1,0 +1,53 @@
+name: Deploy
+
+# Runs only after the CI workflow finishes successfully on main, or when
+# triggered manually. Deploys are skipped entirely unless the repository
+# variable ENABLE_DEPLOY is set to "true" (Settings → Variables → Actions),
+# so this workflow is inert until you explicitly opt in.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Trigger production deploys
+    runs-on: ubuntu-latest
+    # Gate: opt-in via ENABLE_DEPLOY, and (for the automatic trigger) only after
+    # a green CI run. Manual runs (workflow_dispatch) bypass the CI check.
+    if: >-
+      ${{ vars.ENABLE_DEPLOY == 'true' &&
+          (github.event_name == 'workflow_dispatch' ||
+           github.event.workflow_run.conclusion == 'success') }}
+    steps:
+      # Backend → Render. Create a Deploy Hook on your Render service
+      # (Settings → Deploy Hook) and store the URL as RENDER_DEPLOY_HOOK_URL.
+      - name: Deploy backend (Render)
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL not set — skipping backend deploy."
+            exit 0
+          fi
+          echo "Triggering Render deploy..."
+          curl -fsSL -X POST "$HOOK"
+
+      # Frontend → Vercel. Create a Deploy Hook on your Vercel project
+      # (Settings → Git → Deploy Hooks) and store the URL as VERCEL_DEPLOY_HOOK_URL.
+      - name: Deploy frontend (Vercel)
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL not set — skipping frontend deploy."
+            exit 0
+          fi
+          echo "Triggering Vercel deploy..."
+          curl -fsSL -X POST "$HOOK"
