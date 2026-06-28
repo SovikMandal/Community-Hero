@@ -75,7 +75,22 @@ export interface Department {
   id: string;
   name: string;
   description?: string | null;
-  _count?: { issues: number };
+  _count?: { issues: number; users?: number };
+}
+
+/** Per-department status breakdown for the admin Departments overview cards. */
+export interface DepartmentStats {
+  total: number;
+  reported: number;
+  verified: number;
+  inProgress: number;
+  resolved: number;
+  rejected: number;
+}
+
+/** A department enriched with its report status breakdown (GET /api/admin/departments). */
+export interface DepartmentWithStats extends Department {
+  stats: DepartmentStats;
 }
 
 export interface IssueImage {
@@ -200,6 +215,33 @@ export interface AdminOverview {
   departments: number;
   recentIssues: Issue[];
   recentUsers: Pick<User, "id" | "name" | "email" | "role" | "avatar" | "createdAt">[];
+}
+
+/** A single lifecycle event in the admin activity timeline (GET /api/admin/activity). */
+export interface AdminActivityEvent {
+  id: string;
+  status: IssueStatus;
+  note?: string | null;
+  createdAt: string;
+  issueId: string | null;
+  issueTitle: string;
+  /** The issue's current department (relevant for routing/assignment events). */
+  department: string | null;
+  /** Name of the user who triggered the event, if any. */
+  actor: string | null;
+}
+
+/** A lifecycle event in the citizen's own activity timeline (GET /api/issues/my-activity). */
+export interface MyActivityEvent {
+  id: string;
+  status: IssueStatus;
+  note?: string | null;
+  createdAt: string;
+  issueId: string | null;
+  issueTitle: string;
+  department: string | null;
+  /** "created" = the user filed this report; "merged" = they supported a duplicate. */
+  reportType: "created" | "merged";
 }
 
 // ── Leaderboard ──────────────────────────────────────────────────────────────

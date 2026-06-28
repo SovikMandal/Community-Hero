@@ -4,6 +4,7 @@ import {
   FileText,
   Building2,
   Map,
+  Activity,
   UserCircle,
   LogOut,
   Shield,
@@ -25,6 +26,7 @@ const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/reports", label: "Reports", icon: FileText },
   { to: "/admin/explore", label: "Explore Map", icon: Map },
+  { to: "/admin/activity", label: "Activity", icon: Activity },
   { to: "/admin/departments", label: "Departments", icon: Building2 },
 ];
 

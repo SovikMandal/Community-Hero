@@ -6,6 +6,7 @@ import { Router } from "express";
 import { authenticate, authorize } from "../middleware/auth.js";
 import {
   getOverview,
+  getActivity,
   listIssues,
   getIssue,
   getIssueContributors,
@@ -37,6 +38,7 @@ router.use(authenticate, authorize("ADMIN"));
 
 // Dashboard
 router.get("/overview", getOverview);
+router.get("/activity", getActivity);
 
 // Issues (Reports)
 router.get("/issues", listIssues);

@@ -1,4 +1,4 @@
-import { ThumbsUp } from "lucide-react";
+import { ThumbsUp, ArrowRight } from "lucide-react";
 import { shortId, type Issue } from "../../../lib";
 import { Button } from "../../../components/ui/button";
 import {
@@ -18,6 +18,12 @@ interface QuickActionsCardProps {
   supporting: boolean;
   supportCount: number;
   hasSupported?: boolean;
+  /**
+   * Admin action mode. When `onAction` is provided, the Support button is
+   * replaced by an action button (labelled `actionLabel`, default "Action").
+   */
+  onAction?: () => void;
+  actionLabel?: string;
 }
 
 export function QuickActionsCard({
@@ -29,6 +35,8 @@ export function QuickActionsCard({
   supporting,
   supportCount,
   hasSupported,
+  onAction,
+  actionLabel,
 }: QuickActionsCardProps) {
   const disabled = !issue;
 
@@ -83,22 +91,34 @@ export function QuickActionsCard({
             >
               Share
             </Button>
-            <Button
-              variant={hasSupported ? "default" : "outline"}
-              className={
-                "rounded-full h-10 " +
-                (hasSupported ? "bg-[#2b7fff] text-blue-50 hover:bg-[#2b7fff]/90" : "")
-              }
-              disabled={disabled || supporting || hasSupported}
-              onClick={onSupport}
-            >
-              <ThumbsUp className="size-4 mr-1.5" />
-              {hasSupported
-                ? "Supported"
-                : supporting
-                  ? "Supporting…"
-                  : `Support (${supportCount})`}
-            </Button>
+            {onAction ? (
+              <Button
+                variant="default"
+                className="rounded-full h-10 bg-[#2b7fff] text-blue-50 hover:bg-[#2b7fff]/90"
+                disabled={disabled}
+                onClick={onAction}
+              >
+                {actionLabel ?? "Action"}
+                <ArrowRight className="size-4 ml-1.5" />
+              </Button>
+            ) : (
+              <Button
+                variant={hasSupported ? "default" : "outline"}
+                className={
+                  "rounded-full h-10 " +
+                  (hasSupported ? "bg-[#2b7fff] text-blue-50 hover:bg-[#2b7fff]/90" : "")
+                }
+                disabled={disabled || supporting || hasSupported}
+                onClick={onSupport}
+              >
+                <ThumbsUp className="size-4 mr-1.5" />
+                {hasSupported
+                  ? "Supported"
+                  : supporting
+                    ? "Supporting…"
+                    : `Support (${supportCount})`}
+              </Button>
+            )}
           </div>
           <div className="rounded-2xl bg-muted p-4">
             <div className="font-medium text-sm leading-5">Reference ID</div>

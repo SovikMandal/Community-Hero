@@ -50,6 +50,14 @@ export function groupIssuesByPriority() {
   return prisma.issue.groupBy({ by: ["priority"], _count: { _all: true } });
 }
 
+// Per-department status breakdown for the admin Departments overview cards.
+export function groupIssuesByDepartmentStatus() {
+  return prisma.issue.groupBy({
+    by: ["departmentId", "status"],
+    _count: { _all: true },
+  });
+}
+
 export function findRecentIssues(take = 5) {
   return prisma.issue.findMany({
     orderBy: { createdAt: "desc" },
@@ -64,6 +72,26 @@ export function findRecentUsers(take = 5) {
     take,
     select: USER_SELECT,
   });
+}
+
+// Recent lifecycle events across ALL issues, for the admin activity timeline.
+// Each event carries its issue (title + current department) and the acting user.
+export function findRecentTimelineEvents({ skip = 0, take = 12 } = {}) {
+  return prisma.timelineEvent.findMany({
+    orderBy: { createdAt: "desc" },
+    skip,
+    take,
+    include: {
+      issue: {
+        select: { id: true, title: true, department: { select: { name: true } } },
+      },
+      actor: { select: { id: true, name: true } },
+    },
+  });
+}
+
+export function countTimelineEvents() {
+  return prisma.timelineEvent.count();
 }
 
 // ── Issues ───────────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { GridBackground } from "../../../components/GridBackground";
 import {
   Search,
   MapPin,
@@ -53,7 +54,7 @@ const PAGE_SIZE = 12;
 const fieldClass =
   "rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium text-foreground outline-none transition-colors focus:border-blue-400";
 
-export function AdminReports() {
+export function AdminReports({ isDark }: { isDark?: boolean }) {
   const navigate = useNavigate();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -130,7 +131,10 @@ export function AdminReports() {
   }, [page, total]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
+    <div className="relative min-h-full">
+      <GridBackground isDark={isDark} />
+      <div className="relative z-10">
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
       {/* Heading */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -306,6 +310,8 @@ export function AdminReports() {
             </div>
           </div>
         )}
+      </div>
+    </div>
       </div>
     </div>
   );

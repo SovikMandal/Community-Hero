@@ -9,6 +9,9 @@ import { AdminDashboard } from "./admin/pages/dashboard/AdminDashboard";
 import { AdminReports } from "./admin/pages/reports/AdminReports";
 import { AdminReportDetail } from "./admin/pages/reports/AdminReportDetail";
 import { AdminExploreMapPage } from "./admin/pages/explore/AdminExploreMapPage";
+import { AdminActivity } from "./admin/pages/activity/AdminActivity";
+import { AdminDepartments } from "./admin/pages/departments/AdminDepartments";
+import { AdminDepartmentReports } from "./admin/pages/departments/AdminDepartmentReports";
 import { RequireAdmin, BlockAdmins } from "./components/RouteGuards";
 import {
   fetchCurrentUser,
@@ -131,16 +134,21 @@ export default function App() {
       <Route path="/leaderboard" element={dashboard} />
       <Route path="/community" element={dashboard} />
       <Route path="/all-issues" element={dashboard} />
+      <Route path="/activity" element={dashboard} />
       <Route path="/track/:issueId" element={dashboard} />
       <Route path="/admin" element={
         <RequireAdmin user={user} ready={authReady}>
           <AdminLayout user={user} onLogout={handleSignOut} isDark={isDark} onToggleDark={() => setIsDark(d => !d)} />
         </RequireAdmin>
       }>
-        <Route index element={<AdminDashboard />} />
-        <Route path="reports" element={<AdminReports />} />
+        <Route index element={<AdminDashboard isDark={isDark} />} />
+        <Route path="reports" element={<AdminReports isDark={isDark} />} />
         <Route path="reports/:id" element={<AdminReportDetail isDark={isDark} />} />
         <Route path="explore" element={<AdminExploreMapPage userLocation={userLocation} isDark={isDark} />} />
+        <Route path="activity" element={<AdminActivity isDark={isDark} />} />
+        <Route path="departments" element={<AdminDepartments isDark={isDark} />} />
+        <Route path="departments/:id" element={<AdminDepartmentReports isDark={isDark} />} />
+        <Route path="departments/reports/:id" element={<AdminReportDetail isDark={isDark} mode="department" />} />
       </Route>
       <Route path="*" element={<Navigate to={getCachedUser() ? (isAdmin(getCachedUser()) ? "/admin" : "/dashboard") : "/"} replace />} />
     </Routes>

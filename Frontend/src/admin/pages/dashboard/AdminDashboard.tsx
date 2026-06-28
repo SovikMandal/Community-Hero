@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
+import { GridBackground } from "../../../components/GridBackground";
 import {
   FileText,
   CheckCircle2,
@@ -6,13 +9,16 @@ import {
   Users,
   MapPin,
   ChevronUp,
+  ChevronRight,
 } from "lucide-react";
 import {
   admin,
   categoryLabel,
   statusLabel,
   shortId,
+  timeAgo,
   type AdminOverview,
+  type AdminActivityEvent,
   type Issue,
   type IssueStatus,
 } from "../../../lib";
@@ -82,8 +88,93 @@ function PipelineBar({
   );
 }
 
-export function AdminDashboard() {
+// Friendly action labels for each lifecycle stage shown in the activity feed.
+function activityLabel(e: AdminActivityEvent): string {
+  switch (e.status) {
+    case "REPORTED":
+      return "New report received";
+    case "VERIFIED":
+      return "Report verified";
+    case "ASSIGNED":
+      return e.department ? `Routed to ${e.department}` : "Routed to department";
+    case "ENGINEER_VISITED":
+      return "Field inspector assigned";
+    case "REPAIR_STARTED":
+      return "Repair started";
+    case "COMPLETED":
+      return "Report resolved";
+    case "REJECTED":
+      return "Report rejected";
+    default:
+      return statusLabel(e.status);
+  }
+}
+
+// Vertical activity feed mirroring the citizen dashboard's Activity Timeline.
+// Renders real lifecycle events (reported → verified → routed → inspected →
+// repair started → completed) across all reports.
+function ActivityTimeline({ events, onViewAll }: { events: AdminActivityEvent[]; onViewAll?: () => void }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Activity Timeline</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">Recent report lifecycle activity</p>
+        </div>
+        {onViewAll && (
+          <button
+            onClick={onViewAll}
+            className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
+          >
+            View all
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      {events.length === 0 ? (
+        <div className="px-5 py-10 text-center text-sm text-muted-foreground">No activity yet.</div>
+      ) : (
+        <div className="px-5 py-6">
+          <div className="relative pl-6">
+            <div className="absolute left-2 top-2 bottom-2 w-0.5 rounded-full bg-border" />
+            <div className="flex flex-col gap-5">
+              {events.map((e, i) => {
+                const color = STATUS_COLORS[e.status]?.fg ?? "#2563EB";
+                return (
+                  <motion.div
+                    key={e.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.06 }}
+                    className="flex items-start gap-4"
+                  >
+                    <span
+                      className="absolute left-0 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border-2"
+                      style={{ background: color, borderColor: color, boxShadow: `0 0 0 3px ${color}22` }}
+                    />
+                    <div className="min-w-0">
+                      <p className="mb-0.5 font-mono text-xs text-muted-foreground">{timeAgo(e.createdAt)}</p>
+                      <p className="text-sm font-semibold text-foreground">{activityLabel(e)}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {e.issueTitle}
+                        {e.actor ? ` · by ${e.actor}` : ""}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function AdminDashboard({ isDark }: { isDark?: boolean }) {
+  const navigate = useNavigate();
   const [data, setData] = useState<AdminOverview | null>(null);
+  const [activity, setActivity] = useState<AdminActivityEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -94,6 +185,11 @@ export function AdminDashboard() {
       .then((d) => { if (active) setData(d); })
       .catch(() => { if (active) setError(true); })
       .finally(() => { if (active) setLoading(false); });
+    // Activity feed loads independently so it never blocks the headline stats.
+    admin
+      .activity({ limit: 6 })
+      .then((r) => { if (active) setActivity(r.items); })
+      .catch(() => { /* non-critical — timeline simply stays empty */ });
     return () => { active = false; };
   }, []);
 
@@ -110,7 +206,10 @@ export function AdminDashboard() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
+    <div className="relative min-h-full">
+      <GridBackground isDark={isDark} />
+      <div className="relative z-10">
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
       {/* Heading */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Dashboard</h1>
@@ -209,8 +308,15 @@ export function AdminDashboard() {
               )}
             </div>
           </div>
+
+          {/* Activity timeline */}
+          <div className="mt-6">
+            <ActivityTimeline events={activity} onViewAll={() => navigate("/admin/activity")} />
+          </div>
         </>
       )}
+    </div>
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import {
   listIssues,
   getMapIssues,
   getIssue,
+  getMyActivity,
   updateStatus,
 } from "../controllers/issue.controller.js";
 import { toggleVote, supportIssue } from "../controllers/vote.controller.js";
@@ -18,6 +19,9 @@ const router = Router();
 // Public-ish reads (optionalAuth lets "mine" filter work when logged in).
 router.get("/", optionalAuth, listIssues);
 router.get("/map", getMapIssues);
+// Signed-in user's own + merged reports' lifecycle timeline. Declared before
+// "/:id" so "my-activity" isn't captured as an issue id.
+router.get("/my-activity", authenticate, getMyActivity);
 router.get("/:id", optionalAuth, getIssue);
 
 // Preview the AI analysis without saving (multipart, optional image under "images").

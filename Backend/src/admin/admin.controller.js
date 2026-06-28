@@ -9,6 +9,12 @@ export const getOverview = asyncHandler(async (_req, res) => {
   return sendSuccess(res, data, "Admin overview");
 });
 
+// GET /api/admin/activity
+export const getActivity = asyncHandler(async (req, res) => {
+  const { items, page, limit, total } = await adminService.getActivity(req.query);
+  return sendPaginated(res, items, { page, limit, total }, "Activity timeline");
+});
+
 // ── Issues ───────────────────────────────────────────────────────────────────
 // GET /api/admin/issues
 export const listIssues = asyncHandler(async (req, res) => {
@@ -55,7 +61,7 @@ export const deleteIssue = asyncHandler(async (req, res) => {
 // ── Departments ──────────────────────────────────────────────────────────────
 // GET /api/admin/departments
 export const listDepartments = asyncHandler(async (_req, res) => {
-  const departments = await adminService.listDepartments();
+  const departments = await adminService.listDepartmentsWithStats();
   return sendSuccess(res, { departments }, "Departments");
 });
 

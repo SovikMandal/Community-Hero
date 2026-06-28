@@ -4,6 +4,7 @@
 import { api } from "./api";
 import type {
   AdminOverview,
+  AdminActivityEvent,
   AnalyzeResult,
   ChatMessage,
   CommunityImage,
@@ -11,6 +12,7 @@ import type {
   CreateIssueResult,
   DashboardStats,
   Department,
+  DepartmentWithStats,
   Hotspot,
   Issue,
   IssueCategory,
@@ -19,6 +21,7 @@ import type {
   IssueStatus,
   LeaderboardResult,
   MapMarker,
+  MyActivityEvent,
   PaginatedResult,
   PriorityLevel,
   VerificationAnswer,
@@ -75,6 +78,15 @@ export const issues = {
 
   map(): Promise<MapMarker[]> {
     return api.get<{ issues: MapMarker[] }>("/issues/map").then((d) => d.issues);
+  },
+
+  /** The signed-in user's own + merged reports' lifecycle timeline (paginated). */
+  myActivity(params: { page?: number; limit?: number } = {}): Promise<PaginatedResult<MyActivityEvent>> {
+    const query: Record<string, number | undefined> = { ...params };
+    return api.getRaw<MyActivityEvent[]>("/issues/my-activity", query).then((r) => ({
+      items: r.data,
+      pagination: r.pagination,
+    }));
   },
 
   get(id: string): Promise<Issue> {
@@ -184,6 +196,15 @@ export const admin = {
     return api.get<AdminOverview>("/admin/overview");
   },
 
+  /** Recent lifecycle events across all reports for the activity timeline. */
+  activity(params: { page?: number; limit?: number } = {}): Promise<PaginatedResult<AdminActivityEvent>> {
+    const query: Record<string, number | undefined> = { ...params };
+    return api.getRaw<AdminActivityEvent[]>("/admin/activity", query).then((r) => ({
+      items: r.data,
+      pagination: r.pagination,
+    }));
+  },
+
   // ── Reports (issues) ─────────────────────────────────────────────────────
   issues: {
     list(params: AdminListIssuesParams = {}): Promise<PaginatedResult<Issue>> {
@@ -220,6 +241,16 @@ export const admin = {
     },
     remove(id: string): Promise<{ id: string }> {
       return api.del<{ id: string }>(`/admin/issues/${id}`);
+    },
+  },
+
+  // ── Departments ──────────────────────────────────────────────────────────
+  departments: {
+    /** All departments, each enriched with a report status breakdown. */
+    list(): Promise<DepartmentWithStats[]> {
+      return api
+        .get<{ departments: DepartmentWithStats[] }>("/admin/departments")
+        .then((d) => d.departments);
     },
   },
 };

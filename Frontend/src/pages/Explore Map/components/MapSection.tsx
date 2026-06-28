@@ -25,6 +25,9 @@ interface MapSectionProps {
   onNavigate: () => void;
   onSupport: () => void;
   onClosePopup: () => void;
+  /** Admin action mode for the popup card (see IssuePopupCard). */
+  onAction?: () => void;
+  actionLabel?: string;
 }
 
 export function MapSection({
@@ -49,6 +52,8 @@ export function MapSection({
   onNavigate,
   onSupport,
   onClosePopup,
+  onAction,
+  actionLabel,
 }: MapSectionProps) {
   return (
     <section className="shadow-sm rounded-3xl bg-card border-border border border-solid p-3 sm:p-4 overflow-hidden">
@@ -106,6 +111,8 @@ export function MapSection({
               onNavigate={onNavigate}
               onSupport={onSupport}
               onClose={onClosePopup}
+              onAction={onAction}
+              actionLabel={actionLabel}
             />
           </div>
         )}

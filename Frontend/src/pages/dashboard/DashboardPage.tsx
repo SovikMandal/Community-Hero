@@ -16,6 +16,7 @@ import { IssuePipeline, type StatusCounts } from "./components/IssuePipeline";
 import { LiveMapCard } from "./components/LiveMapCard";
 import { RecentReports } from "./components/RecentReports";
 import { ActivityTimeline } from "./components/ActivityTimeline";
+import { ActivityFeedView } from "./components/ActivityFeedView";
 import { CommunityFeed } from "./components/CommunityFeed";
 import { Leaderboard } from "./components/Leaderboard";
 import { TrackIssueView } from "./components/TrackIssueView";
@@ -33,6 +34,7 @@ import {
   type Issue,
   type MapMarker,
   type LeaderboardResult,
+  type MyActivityEvent,
 } from "../../lib";
 
 interface DashboardPageProps {
@@ -71,6 +73,7 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
     : path.startsWith("/community") ? "Community"
     : path.startsWith("/track") ? "Track Report"
     : path.startsWith("/all-issues") ? "Track Report"
+    : path.startsWith("/activity") ? "Activity"
     : "Dashboard";
 
   const setActiveNav = (v: string) => {
@@ -117,6 +120,7 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [dataError, setDataError] = useState<string | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardResult | null>(null);
+  const [myActivity, setMyActivity] = useState<MyActivityEvent[]>([]);
 
   // Real points + leaderboard rank for the sidebar profile row.
   const [rankInfo, setRankInfo] = useState<{ points: number; rank: number } | null>(null);
@@ -140,12 +144,14 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
       issuesApi.list({ limit: 8 }),
       issuesApi.map(),
       dashboard.leaderboard(),
+      issuesApi.myActivity({ limit: 6 }),
     ]).then((results) => {
-      const [s, l, m, lb] = results;
+      const [s, l, m, lb, act] = results;
       if (s.status === "fulfilled") setStats(s.value);
       if (l.status === "fulfilled") setIssueList(l.value.items);
       if (m.status === "fulfilled") setMarkers(m.value);
       if (lb.status === "fulfilled") setLeaderboardData(lb.value);
+      if (act.status === "fulfilled") setMyActivity(act.value.items);
       if (m.status === "rejected") console.error("[Dashboard] Map fetch failed:", m.reason);
       if (s.status === "rejected" && l.status === "rejected" && m.status === "rejected") {
         setDataError("Could not reach the backend. Is the API running on port 5000?");
@@ -328,6 +334,8 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
           <TrackIssueView issueId={trackIssueId} isDark={isDark} t={t} />
         ) : activeNav === "Track Report" ? (
           <AllIssuesView isDark={isDark} t={t} onBack={() => nav("/dashboard")} onSelect={(id) => nav(`/track/${id}`)} />
+        ) : activeNav === "Activity" ? (
+          <ActivityFeedView t={t} isDark={isDark} onBack={() => nav("/dashboard")} onSelect={(id) => nav(`/track/${id}`)} />
         ) : !stats && !dataError ? (
         <DashboardSkeleton />
         ) : (
@@ -362,7 +370,7 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
                 onSelect={(id) => nav(`/track/${id}`)}
               />
 
-              <ActivityTimeline t={t} isDark={isDark} issues={issueList} />
+              <ActivityTimeline t={t} isDark={isDark} events={myActivity} onViewAll={() => nav("/activity")} />
 
               <CommunityFeed t={t} isDark={isDark} issues={issueList} />
 

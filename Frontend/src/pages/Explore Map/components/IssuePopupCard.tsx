@@ -20,6 +20,13 @@ interface IssuePopupCardProps {
   onNavigate: () => void;
   onSupport: () => void;
   onClose: () => void;
+  /**
+   * Admin action mode. When `onAction` is provided, the Support button is
+   * replaced by an action button (labelled `actionLabel`, default "Action")
+   * that calls `onAction` instead of supporting the issue.
+   */
+  onAction?: () => void;
+  actionLabel?: string;
 }
 
 const FALLBACK_IMG =
@@ -37,6 +44,8 @@ export function IssuePopupCard({
   onNavigate,
   onSupport,
   onClose,
+  onAction,
+  actionLabel,
 }: IssuePopupCardProps) {
   const image = issue.images?.find((i) => !i.isVideo)?.url ?? FALLBACK_IMG;
   const reportedAt = new Date(issue.createdAt).toLocaleString(undefined, {
@@ -130,15 +139,17 @@ export function IssuePopupCard({
             </Button>
             <Button
               variant="outline"
-              onClick={onSupport}
-              disabled={supporting || loading || hasSupported}
+              onClick={onAction ?? onSupport}
+              disabled={onAction ? loading : supporting || loading || hasSupported}
               className="rounded-full text-xs leading-4 px-3 sm:px-4 h-8 sm:h-9"
             >
-              {hasSupported
-                ? "Supported"
-                : supporting
-                  ? "Supporting…"
-                  : `Support (${supportCount})`}
+              {onAction
+                ? (actionLabel ?? "Action")
+                : hasSupported
+                  ? "Supported"
+                  : supporting
+                    ? "Supporting…"
+                    : `Support (${supportCount})`}
             </Button>
           </div>
         </div>

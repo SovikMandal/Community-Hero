@@ -47,10 +47,14 @@ const STATUS_STAGES: { status: IssueStatus; label: string; defaultDesc: string }
   { status: "COMPLETED",        label: "Completed",        defaultDesc: "Issue resolved." },
 ];
 
-export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
+export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: boolean; mode?: "admin" | "department" }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = tk(isDark);
+  // In "department" mode the page is reached from a department's report list:
+  // the routing/accept/reject controls (admin's job) are hidden and replaced
+  // with the department's own progress actions.
+  const isDepartment = mode === "department";
 
   const [issue, setIssue] = useState<Issue | null>(null);
   const [departmentList, setDepartmentList] = useState<Department[]>([]);
@@ -156,7 +160,7 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
         <button
-          onClick={() => navigate("/admin/reports")}
+          onClick={() => navigate(-1)}
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium"
           style={{ color: t.textSub }}
         >
@@ -216,6 +220,8 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
 
   // Routing/progress actions require the report to be accepted (verified) first.
   const accepted = currentIndex >= stageOrder.indexOf("VERIFIED");
+  // Department progress actions unlock once an admin has routed (assigned) it.
+  const routed = currentIndex >= stageOrder.indexOf("ASSIGNED");
 
   const innerBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(244,244,245,0.4)";
   const timelineBg = isDark ? "rgba(255,255,255,0.02)" : "rgba(244,244,245,0.3)";
@@ -234,7 +240,7 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <button
-              onClick={() => navigate("/admin/reports")}
+              onClick={() => navigate(-1)}
               className="mb-1 inline-flex items-center gap-2 text-sm font-medium"
               style={{ color: t.textSub }}
             >
@@ -265,6 +271,7 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
           </div>
 
           {/* Accept / Reject actions */}
+          {!isDepartment && (
           <div className="grid grid-cols-2 gap-3 mx-5">
             <button
               onClick={() => handleStatus("VERIFIED")}
@@ -283,6 +290,7 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
               <X className="w-4 h-4" /> Reject report
             </button>
           </div>
+          )}
 
           {/* User details */}
           {/* User details — report creator + everyone who merged a duplicate */}
@@ -481,8 +489,44 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
         {/* Admin actions */}
         <div className="rounded-3xl border p-4 md:p-6" style={{ background: cardBg, borderColor: t.cardBorder, boxShadow: t.cardShadow, ...blur }}>
           <div className="font-medium text-sm flex items-center gap-2 mb-4" style={{ color: t.text }}>
-            <Route className="w-4 h-4 text-blue-500" /> Admin actions
+            <Route className="w-4 h-4 text-blue-500" /> {isDepartment ? "Department actions" : "Admin actions"}
           </div>
+          {isDepartment ? (
+            <>
+              {!routed && !locked && (
+                <div className="mb-4 rounded-2xl border px-4 py-2.5 text-xs font-medium flex items-center gap-2" style={{ background: "rgba(217,119,6,0.10)", borderColor: "rgba(217,119,6,0.35)", color: "#D97706" }}>
+                  <Clock className="w-3.5 h-3.5" /> This report hasn't been routed to your department yet. Actions unlock once an admin assigns it.
+                </div>
+              )}
+              <div className="grid gap-3 sm:grid-cols-3">
+                <button
+                  onClick={() => handleStatus("ENGINEER_VISITED")}
+                  disabled={busy || locked || !routed || currentIndex >= stageOrder.indexOf("ENGINEER_VISITED")}
+                  className={actionBtn + " border"}
+                  style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
+                >
+                  <span className="flex items-center gap-2"><Search className="w-4 h-4 text-blue-500" /> Field inspection</span>
+                </button>
+                <button
+                  onClick={() => handleStatus("REPAIR_STARTED")}
+                  disabled={busy || locked || !routed || currentIndex >= stageOrder.indexOf("REPAIR_STARTED")}
+                  className={actionBtn + " border"}
+                  style={{ borderColor: t.inputBorder, color: t.text, background: innerBg }}
+                >
+                  <span className="flex items-center gap-2"><PlayCircle className="w-4 h-4 text-amber-500" /> Work in progress</span>
+                </button>
+                <button
+                  onClick={() => handleStatus("COMPLETED")}
+                  disabled={busy || locked || !routed}
+                  className={actionBtn + " text-white"}
+                  style={{ background: "#16A34A" }}
+                >
+                  <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Issue resolved</span>
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
           {!accepted && !locked && (
             <div className="mb-4 rounded-2xl border px-4 py-2.5 text-xs font-medium flex items-center gap-2" style={{ background: "rgba(217,119,6,0.10)", borderColor: "rgba(217,119,6,0.35)", color: "#D97706" }}>
               <Clock className="w-3.5 h-3.5" /> Accept the report first to enable these actions.
@@ -539,6 +583,8 @@ export function AdminReportDetail({ isDark = true }: { isDark?: boolean }) {
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-500" /> Mark completed</span>
             </button>
           </div>
+            </>
+          )}
         </div>
 
         {/* Updates */}

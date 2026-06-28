@@ -221,6 +221,11 @@ export function AdminExploreMapPage({ userLocation, isDark }: AdminExploreMapPag
     if (selectedId) navigate(`/track/${selectedId}`);
   };
 
+  // Admin action: jump to the full report management page in the admin console.
+  const handleAction = () => {
+    if (selectedId) navigate(`/admin/reports/${selectedId}`);
+  };
+
   const handleNavigate = () => {
     if (!selectedIssue) return;
     const { latitude, longitude } = selectedIssue;
@@ -443,6 +448,8 @@ export function AdminExploreMapPage({ userLocation, isDark }: AdminExploreMapPag
             onNavigate={handleNavigate}
             onSupport={handleSupport}
             onClosePopup={() => handleSelect(null)}
+            onAction={handleAction}
+            actionLabel="Action"
           />
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <ReportStatusCard issue={selectedIssue} loading={detailLoading} />
@@ -456,6 +463,8 @@ export function AdminExploreMapPage({ userLocation, isDark }: AdminExploreMapPag
               supporting={supporting}
               supportCount={supportCount}
               hasSupported={hasSupported}
+              onAction={handleAction}
+              actionLabel="Action"
             />
           </section>
         </div>

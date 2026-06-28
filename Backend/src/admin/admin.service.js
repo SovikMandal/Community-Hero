@@ -80,6 +80,28 @@ export async function getOverview() {
   };
 }
 
+// ── Activity timeline ────────────────────────────────────────────────────────
+// Recent lifecycle events (reported → verified → routed → inspected →
+// repair started → completed) across all reports, newest first. Paginated.
+export async function getActivity(query = {}) {
+  const { page, limit, skip } = parsePagination(query);
+  const [events, total] = await Promise.all([
+    repo.findRecentTimelineEvents({ skip, take: limit }),
+    repo.countTimelineEvents(),
+  ]);
+  const items = events.map((e) => ({
+    id: e.id,
+    status: e.status,
+    note: e.note ?? null,
+    createdAt: e.createdAt,
+    issueId: e.issue?.id ?? null,
+    issueTitle: e.issue?.title ?? "Report",
+    department: e.issue?.department?.name ?? null,
+    actor: e.actor?.name ?? null,
+  }));
+  return { items, page, limit, total };
+}
+
 // ── Issues ───────────────────────────────────────────────────────────────────
 const issueFilterSchema = z.object({
   status: z.enum(ISSUE_STATUSES).optional(),
@@ -270,6 +292,58 @@ export async function deleteIssue(id, actorId) {
 // ── Departments ──────────────────────────────────────────────────────────────
 export function listDepartments() {
   return repo.findDepartments();
+}
+
+/**
+ * Departments enriched with a per-department status breakdown for the admin
+ * Departments overview cards (total / in-progress / resolved / rejected, …).
+ */
+export async function listDepartmentsWithStats() {
+  const [departments, grouped] = await Promise.all([
+    repo.findDepartments(),
+    repo.groupIssuesByDepartmentStatus(),
+  ]);
+
+  const emptyStats = () => ({
+    total: 0,
+    reported: 0,
+    verified: 0,
+    inProgress: 0,
+    resolved: 0,
+    rejected: 0,
+  });
+
+  const byDept = new Map();
+  for (const g of grouped) {
+    if (!g.departmentId) continue; // skip unassigned issues
+    if (!byDept.has(g.departmentId)) byDept.set(g.departmentId, emptyStats());
+    const s = byDept.get(g.departmentId);
+    const n = g._count._all;
+    s.total += n;
+    switch (g.status) {
+      case "REPORTED":
+        s.reported += n;
+        break;
+      case "VERIFIED":
+        s.verified += n;
+        break;
+      case "ASSIGNED":
+      case "ENGINEER_VISITED":
+      case "REPAIR_STARTED":
+        s.inProgress += n;
+        break;
+      case "COMPLETED":
+        s.resolved += n;
+        break;
+      case "REJECTED":
+        s.rejected += n;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return departments.map((d) => ({ ...d, stats: byDept.get(d.id) ?? emptyStats() }));
 }
 
 const departmentCreateSchema = z.object({

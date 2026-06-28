@@ -345,6 +345,62 @@ export const getIssue = asyncHandler(async (req, res) => {
   return sendSuccess(res, { issue }, "Issue detail");
 });
 
+/**
+ * GET /api/issues/my-activity
+ * Paginated lifecycle timeline across the reports the signed-in user created
+ * OR merged a duplicate into (supported). Newest events first.
+ */
+export const getMyActivity = asyncHandler(async (req, res) => {
+  const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit || "20", 10), 1), 100);
+
+  // Issues the user created or merged into (via a Support).
+  const myIssues = await prisma.issue.findMany({
+    where: {
+      OR: [
+        { reporterId: req.user.id },
+        { supports: { some: { userId: req.user.id } } },
+      ],
+    },
+    select: { id: true, reporterId: true },
+  });
+
+  // Map each issue to how the user is related to it.
+  const relation = new Map(
+    myIssues.map((i) => [i.id, i.reporterId === req.user.id ? "created" : "merged"])
+  );
+  const issueIds = myIssues.map((i) => i.id);
+  const where = { issueId: { in: issueIds } };
+
+  const [events, total] = await Promise.all([
+    prisma.timelineEvent.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        issue: {
+          select: { id: true, title: true, department: { select: { name: true } } },
+        },
+      },
+    }),
+    prisma.timelineEvent.count({ where }),
+  ]);
+
+  const items = events.map((e) => ({
+    id: e.id,
+    status: e.status,
+    note: e.note ?? null,
+    createdAt: e.createdAt,
+    issueId: e.issue?.id ?? null,
+    issueTitle: e.issue?.title ?? "Report",
+    department: e.issue?.department?.name ?? null,
+    reportType: relation.get(e.issueId) ?? "created",
+  }));
+
+  return sendPaginated(res, items, { page, limit, total }, "My activity");
+});
+
 const statusSchema = z.object({
   status: z.enum([
     "REPORTED",
