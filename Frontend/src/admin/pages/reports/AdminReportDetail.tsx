@@ -87,56 +87,46 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
   }, [id]);
 
   const runAction = useCallback(
-    (action: () => Promise<unknown>) => {
+    (action: () => Promise<unknown>, successMsg?: { msg: string; type: "success" | "info" | "warning" | "error" }) => {
       setBusy(true);
       return Promise.resolve(action())
         .then(() => loadIssue())
+        .then(() => {
+          if (successMsg) toast[successMsg.type](successMsg.msg);
+        })
         .catch(() => {
           setError("Action failed. Please try again.");
           toast.error("Action failed. Please try again.");
-          return Promise.reject();
         })
         .finally(() => setBusy(false));
     },
     [loadIssue],
   );
 
+  const STATUS_TOAST: Record<string, { msg: string; type: "success" | "info" | "warning" | "error" }> = {
+    ACCEPTED: { msg: "Report accepted successfully", type: "success" },
+    VERIFIED: { msg: "Report marked as verified", type: "info" },
+    ASSIGNED: { msg: "Report routed to department", type: "info" },
+    ENGINEER_VISITED: { msg: "Field inspector assigned", type: "info" },
+    REPAIR_STARTED: { msg: "Repair work started", type: "warning" },
+    COMPLETED: { msg: "Issue resolved successfully!", type: "success" },
+    REJECTED: { msg: "Report rejected", type: "error" },
+  };
+
   const handleStatus = (status: IssueStatus) => {
     if (!id) return;
-    runAction(() => admin.issues.updateStatus(id, status)).then(() => {
-      const msgs: Record<string, { msg: string; type: "success" | "info" | "warning" }> = {
-        ACCEPTED: { msg: "Report accepted successfully", type: "success" },
-        VERIFIED: { msg: "Report marked as verified", type: "info" },
-        ASSIGNED: { msg: "Report assigned to department", type: "info" },
-        ENGINEER_VISITED: { msg: "Field inspector assigned", type: "info" },
-        REPAIR_STARTED: { msg: "Repair work started", type: "warning" },
-        COMPLETED: { msg: "Issue resolved successfully", type: "success" },
-      };
-      const m = msgs[status] ?? { msg: "Status updated", type: "info" };
-      toast[m.type](m.msg);
-    }).catch(() => {});
+    runAction(() => admin.issues.updateStatus(id, status), STATUS_TOAST[status]);
   };
 
   const handleStatusNote = (status: IssueStatus, note: string) => {
     if (!id) return;
-    runAction(() => admin.issues.updateStatus(id, status, note)).then(() => {
-      const msgs: Record<string, { msg: string; type: "success" | "info" | "warning" }> = {
-        ASSIGNED: { msg: "Report routed to department", type: "info" },
-        ENGINEER_VISITED: { msg: "Field inspector assigned", type: "info" },
-        REPAIR_STARTED: { msg: "Repair work started", type: "warning" },
-        COMPLETED: { msg: "Issue resolved successfully!", type: "success" },
-      };
-      const m = msgs[status] ?? { msg: "Status updated", type: "info" };
-      toast[m.type](m.msg);
-    }).catch(() => {});
+    runAction(() => admin.issues.updateStatus(id, status, note), STATUS_TOAST[status]);
   };
 
   const handleAssign = (departmentId: string) => {
     if (!id || !departmentId) return;
     setAssigning(false);
-    runAction(() => admin.issues.assign(id, departmentId)).then(() => {
-      toast.info("Department assigned successfully");
-    }).catch(() => {});
+    runAction(() => admin.issues.assign(id, departmentId), { msg: "Department assigned successfully", type: "info" });
   };
 
   // ── Reject-with-reason flow ────────────────────────────────────────────────
@@ -160,9 +150,7 @@ export function AdminReportDetail({ isDark = true, mode = "admin" }: { isDark?: 
     const note = rejectReason.trim();
     if (!note) return;
     setRejectOpen(false);
-    runAction(() => admin.issues.updateStatus(id, "REJECTED", note)).then(() => {
-      toast.error("Report rejected");
-    }).catch(() => {});
+    runAction(() => admin.issues.updateStatus(id, "REJECTED", note), STATUS_TOAST["REJECTED"]);
   };
 
   // ── Loading / error states ─────────────────────────────────────────────────

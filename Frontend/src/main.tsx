@@ -9,7 +9,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <App />
-      <Toaster position="top-right" duration={5000} richColors />
+      <Toaster position="top-right" duration={5000} richColors toastOptions={{ style: { zIndex: 99999 } }} />
     </BrowserRouter>
   </StrictMode>,
 )
