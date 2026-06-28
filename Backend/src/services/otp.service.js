@@ -19,6 +19,51 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 15_000, // 15s of inactivity on the socket
 });
 
+// Parse MAIL_FROM ("Name <email>" or "email") into Brevo's { name, email } shape.
+function parseSender() {
+  const raw = process.env.MAIL_FROM || process.env.SMTP_USER || "";
+  const match = raw.match(/^\s*"?([^"<]*)"?\s*<([^>]+)>\s*$/);
+  if (match) return { name: match[1].trim() || "Cityguardian", email: match[2].trim() };
+  return { name: "Cityguardian", email: raw.trim() };
+}
+
+/**
+ * Sends an email. Prefers Brevo's HTTP API (works on hosts that block outbound
+ * SMTP ports, e.g. Render's free tier) and falls back to SMTP when no
+ * BREVO_API_KEY is configured (e.g. local development).
+ */
+async function sendEmail({ to, subject, html }) {
+  const apiKey = process.env.BREVO_API_KEY;
+
+  if (apiKey) {
+    const sender = parseSender();
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`Brevo API error ${res.status}: ${body}`);
+    }
+    return true;
+  }
+
+  // Fallback: SMTP (local/dev or hosts that allow outbound SMTP).
+  await transporter.sendMail({
+    from: process.env.MAIL_FROM || `"Cityguardian" <${process.env.SMTP_USER}>`,
+    to,
+    subject,
+    html,
+  });
+  return true;
+}
+
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -27,8 +72,7 @@ export async function sendOtp(email) {
   const otp = generateOtp();
   otpStore.set(email, { otp, expiresAt: Date.now() + OTP_EXPIRY_MS });
 
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM || `"Cityguardian" <${process.env.SMTP_USER}>`,
+  await sendEmail({
     to: email,
     subject: "Your CivicAI Verification Code",
     html: `<div style="font-family:sans-serif;padding:20px"><h2>Verification Code</h2><p>Your OTP is:</p><h1 style="letter-spacing:8px;color:#2563EB">${otp}</h1><p>This code expires in 5 minutes.</p></div>`,
@@ -48,11 +92,10 @@ export function verifyOtp(email, otp) {
 
 /**
  * Sends a password-reset email containing a one-time link.
- * Reuses the shared SMTP transporter configured above.
+ * Uses the shared sendEmail() helper (Brevo HTTP API with SMTP fallback).
  */
 export async function sendPasswordResetEmail(email, resetUrl) {
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM || `"Cityguardian" <${process.env.SMTP_USER}>`,
+  await sendEmail({
     to: email,
     subject: "Reset your Cityguardian password",
     html: `
