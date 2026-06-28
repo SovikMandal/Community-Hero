@@ -1,7 +1,7 @@
 // Authentication: register, login, session restore, logout.
 // Tokens persist in localStorage; refresh token enables silent re-auth on expiry.
 
-import { api, request, setToken, getToken, setRefreshToken, getRefreshToken } from "./api";
+import { api, request, apiUrl, setToken, getToken, setRefreshToken, getRefreshToken } from "./api";
 import type { AuthResult, User } from "./types";
 
 const USER_KEY = "civicai.user";
@@ -87,7 +87,7 @@ export async function login(input: LoginInput): Promise<User> {
  *  goes to Google's "Choose an account" screen; after consent, Google → backend
  *  → back to /auth/callback with the session tokens. (Full-page navigation.) */
 export function beginGoogleAuth(): void {
-  window.location.href = "/api/auth/google";
+  window.location.href = apiUrl("/auth/google");
 }
 
 /** Uploads a new profile photo, persists it on the backend, and returns the

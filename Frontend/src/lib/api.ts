@@ -9,6 +9,18 @@ import type { ApiEnvelope, Pagination } from "./types";
 const TOKEN_KEY = "civicai.token";
 const REFRESH_TOKEN_KEY = "civicai.refreshToken";
 
+// Backend origin for API calls. In dev this is empty, so requests use relative
+// "/api/..." paths handled by the Vite proxy. In production set
+// VITE_API_BASE_URL to the backend origin (e.g. https://your-api.onrender.com)
+// so the frontend (on Vercel) talks to the backend directly. Trailing slashes
+// are trimmed so we don't end up with a double slash.
+const API_ORIGIN = ((import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "").replace(/\/+$/, "");
+
+/** Builds a full API URL for the given path (prefixes the backend origin + /api). */
+export function apiUrl(path: string): string {
+  return `${API_ORIGIN}/api${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export function getToken(): string | null {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 }
@@ -83,7 +95,7 @@ async function tryRefresh(): Promise<boolean> {
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch("/api/auth/refresh", {
+      const res = await fetch(apiUrl("/auth/refresh"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken: rt }),
@@ -121,7 +133,7 @@ export async function requestRaw<T>(path: string, options: RequestOptions = {}):
     payload = JSON.stringify(body);
   }
 
-  const url = `/api${path.startsWith("/") ? path : `/${path}`}${buildQuery(query)}`;
+  const url = `${apiUrl(path)}${buildQuery(query)}`;
 
   let res: Response;
   try {
