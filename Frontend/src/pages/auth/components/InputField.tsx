@@ -10,6 +10,7 @@ export function InputField({
   rightSlot,
   required,
   isDark = false,
+  autoComplete,
 }: {
   icon: React.ElementType;
   label: string;
@@ -20,6 +21,7 @@ export function InputField({
   rightSlot?: React.ReactNode;
   required?: boolean;
   isDark?: boolean;
+  autoComplete?: string;
 }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -44,6 +46,7 @@ export function InputField({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           required={required}
+          autoComplete={autoComplete ?? "off"}
           className="flex-1 bg-transparent placeholder-slate-400 text-sm outline-none"
           style={{ fontFamily: "Inter, sans-serif", color: isDark ? "#E2E8F0" : "#0F172A" }}
         />
