@@ -48,9 +48,9 @@ Community Hero closes the loop between citizens and local authorities. A residen
 
 | | |
 |---|---|
-| 🚀 **Live Demo** | _add your deployed URL_ |
+| 🚀 **Live Demo** | https://www.cityguardian.tech |
 | 🎬 **Demo Video** | _add your video link_ |
-| 💻 **Source Code** | _add your repository URL_ |
+| 💻 **Source Code** | https://github.com/SovikMandal/Community-Hero.git |
 | 👥 **Team** | _add team members & roles_ |
 
 > **Try it instantly** with the seeded demo admin (admin sign-in is protected by an emailed one-time code):
