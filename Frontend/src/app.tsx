@@ -66,7 +66,7 @@ export default function App() {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         (err) => console.warn("[App] geolocation failed:", err.code, err.message),
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 600000 }
       );
     }, 500);
     return () => clearTimeout(timer);
