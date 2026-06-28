@@ -12,6 +12,15 @@ export const sendOtpHandler = asyncHandler(async (req, res) => {
   try {
     await sendOtp(email);
   } catch (err) {
+    // Surface the real SMTP failure in the server logs (code, response, command)
+    // while keeping the client-facing message generic.
+    console.error("[otp.send] SMTP send failed:", {
+      message: err?.message,
+      code: err?.code,
+      command: err?.command,
+      responseCode: err?.responseCode,
+      response: err?.response,
+    });
     throw ApiError.internal("Failed to send OTP. Check SMTP configuration.");
   }
   return sendSuccess(res, null, "OTP sent to your email");

@@ -15,9 +15,17 @@ const app = express();
 
 // --- Security & core middleware ---
 app.use(helmet());
+const allowedOrigins =
+  env.clientUrl === "*"
+    ? true
+    : env.clientUrl
+        .split(",")
+        .map((o) => o.trim().replace(/\/+$/, "")) // trim spaces + trailing slashes
+        .filter(Boolean);
+
 app.use(
   cors({
-    origin: env.clientUrl === "*" ? true : env.clientUrl.split(","),
+    origin: allowedOrigins,
     credentials: true,
   })
 );

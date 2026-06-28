@@ -12,6 +12,11 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  // Fail fast instead of hanging the HTTP request if the SMTP host/port is
+  // blocked or unreachable in production (common on some hosting platforms).
+  connectionTimeout: 10_000, // 10s to establish the TCP connection
+  greetingTimeout: 10_000, // 10s to receive the SMTP greeting
+  socketTimeout: 15_000, // 15s of inactivity on the socket
 });
 
 function generateOtp() {
