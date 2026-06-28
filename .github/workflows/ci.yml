@@ -22,6 +22,11 @@ jobs:
     defaults:
       run:
         working-directory: Backend
+    # `prisma validate` / `prisma generate` read DATABASE_URL but do NOT connect
+    # to the database. A placeholder value is enough to satisfy the schema's
+    # env("DATABASE_URL") and keep CI free of any real database dependency.
+    env:
+      DATABASE_URL: postgresql://user:pass@localhost:5432/ci?schema=public
     steps:
       - name: Checkout
         uses: actions/checkout@v4

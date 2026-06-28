@@ -1,0 +1,29 @@
+# Normalize line endings: store everything as LF in the repository and let Git
+# check out the platform-native ending. This keeps diffs clean across Windows,
+# macOS, and Linux, and silences "LF will be replaced by CRLF" warnings.
+* text=auto eol=lf
+
+# Files that must always be LF (executed/parsed on Linux CI runners).
+*.sh        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+*.js        text eol=lf
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.css       text eol=lf
+*.md        text eol=lf
+*.prisma    text eol=lf
+.env.example text eol=lf
+
+# Binary assets — never modify or diff as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.svg  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
