@@ -4,8 +4,6 @@
 
 Community Hero closes the loop between citizens and local authorities. A resident photographs a problem; Google Gemini analyzes the image, classifies it, scores its priority, and routes it to the right department; the community verifies it; and everyone tracks it through a transparent timeline until it is resolved.
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
-
 ---
 
 ## Table of Contents
