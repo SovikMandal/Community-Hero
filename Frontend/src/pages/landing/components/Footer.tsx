@@ -12,7 +12,7 @@ export function Footer() {
               <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none">
                 <Shield className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-slate-900 dark:text-slate-100 text-lg tracking-tight">CivicAI</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100 text-lg tracking-tight">Cityguardian</span>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-5">
               AI-powered civic infrastructure for communities that deserve better.
@@ -49,7 +49,7 @@ export function Footer() {
           ))}
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-100 dark:border-white/10">
-          <p className="text-slate-400 dark:text-slate-500 text-sm">© 2025 CivicAI. Making cities better, one report at a time.</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm">© 2026 Cityguardian. Making cities better, one report at a time.</p>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <span className="text-slate-400 dark:text-slate-500 text-sm">All systems operational</span>
