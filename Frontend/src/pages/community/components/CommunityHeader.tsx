@@ -77,11 +77,13 @@ export function CommunityHeader({
           />
         </div>
 
+        {/* Filter + Sort — share a single row on mobile */}
+        <div className="flex flex-row gap-3">
         {/* Filter dropdown */}
-        <div className="relative" ref={filterRef}>
+        <div className="relative flex-1 sm:flex-none" ref={filterRef}>
           <button
             onClick={() => setFilterOpen(!filterOpen)}
-            className="rounded-xl border text-sm font-medium flex px-4 py-2.5 items-center justify-center gap-2 transition-colors"
+            className="w-full rounded-xl border text-sm font-medium flex px-4 py-2.5 items-center justify-center gap-2 transition-colors"
             style={{ background: t.card, borderColor: filterCategory !== "ALL" ? "#2563EB" : t.inputBorder, color: filterCategory !== "ALL" ? "#2563EB" : t.text }}
           >
             <Filter className="size-4" />
@@ -105,10 +107,10 @@ export function CommunityHeader({
         </div>
 
         {/* Sort dropdown */}
-        <div className="relative" ref={sortRef}>
+        <div className="relative flex-1 sm:flex-none" ref={sortRef}>
           <button
             onClick={() => setSortOpen(!sortOpen)}
-            className="rounded-xl text-sm font-medium flex px-4 py-2.5 items-center justify-center gap-2 transition-colors"
+            className="w-full rounded-xl text-sm font-medium flex px-4 py-2.5 items-center justify-center gap-2 transition-colors"
             style={{ background: "#2563EB", color: "#FFFFFF" }}
           >
             <SlidersHorizontal className="size-4" />
@@ -129,6 +131,7 @@ export function CommunityHeader({
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { GoogleMap, MarkerF } from "@react-google-maps/api";
 import {
   MapPin, Clock, Camera, Loader2,
@@ -156,8 +157,29 @@ export function CommunityReportCard({ t, isDark, report, onChange }: CommunityRe
     setVerifyFiles(arr);
   };
 
-  // Open the device's front camera as a live stream (works on desktop too).
+  // Discard the chosen evidence photo so the user can pick/take another.
+  const clearVerifyPhoto = () => {
+    if (verifyPreviewUrl) URL.revokeObjectURL(verifyPreviewUrl);
+    setVerifyPreviewUrl(null);
+    setVerifyFiles(null);
+    if (verifyFileRef.current) verifyFileRef.current.value = "";
+    if (verifyCaptureRef.current) verifyCaptureRef.current.value = "";
+  };
+
+  // Open the device's camera. On mobile we trigger the native camera app via the
+  // `capture` file input (verifyCaptureRef, rear-facing) — the most reliable way
+  // to connect to the phone camera. On desktop we fall back to an in-app
+  // getUserMedia live stream (no native capture there).
   const openCamera = async () => {
+    const isMobile =
+      typeof navigator !== "undefined" &&
+      (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints > 1 && window.matchMedia("(pointer: coarse)").matches));
+    if (isMobile && verifyCaptureRef.current) {
+      // Launches the phone's camera directly and returns the photo to the input.
+      verifyCaptureRef.current.click();
+      return;
+    }
     if (!navigator.mediaDevices?.getUserMedia) {
       // Older/unsupported browsers: fall back to the capture file input.
       verifyCaptureRef.current?.click();
@@ -921,57 +943,25 @@ export function CommunityReportCard({ t, isDark, report, onChange }: CommunityRe
                 </div>
 
                 {/* Evidence (optional) — upload from device or capture from camera */}
-                {cameraOpen ? (
-                  <div className="flex flex-col gap-2">
-                    <div
-                      className="relative w-full h-44 rounded-2xl overflow-hidden border"
-                      style={{ borderColor: t.inputBorder, background: "#000" }}
-                    >
-                      {cameraError ? (
-                        <div
-                          className="w-full h-full flex flex-col items-center justify-center gap-2 text-center text-sm px-4"
-                          style={{ color: t.textSub }}
-                        >
-                          <AlertTriangle className="size-5" style={{ color: "#F59E0B" }} />
-                          {cameraError}
-                        </div>
-                      ) : (
-                        <video
-                          ref={videoRef}
-                          autoPlay
-                          playsInline
-                          muted
-                          className="w-full h-full object-cover"
-                          style={{ transform: "scaleX(-1)" }}
-                        />
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={closeCamera}
-                        className="flex-1 text-sm font-medium rounded-xl border px-3 py-2 transition-colors"
-                        style={{ background: t.card, borderColor: t.inputBorder, color: t.text }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={capturePhoto}
-                        disabled={!!cameraError}
-                        className="flex-1 text-sm font-medium rounded-xl px-3 py-2 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                        style={{ background: "#2563EB", color: "#FFFFFF" }}
-                      >
-                        <Camera className="size-4" /> Capture
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
                     <div
                       className="relative w-full h-28 rounded-2xl border overflow-hidden flex items-center justify-center"
                       style={{ background: t.tagBg, borderColor: t.inputBorder, color: t.textSub }}
                     >
                       {verifyPreviewUrl ? (
-                        <img src={verifyPreviewUrl} alt="Evidence" className="object-cover w-full h-full" />
+                        <>
+                          <img src={verifyPreviewUrl} alt="Evidence" className="object-cover w-full h-full" />
+                          <button
+                            type="button"
+                            onClick={clearVerifyPhoto}
+                            disabled={verifyStatus === "submitting"}
+                            aria-label="Remove photo"
+                            className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full text-white shadow-md transition-colors disabled:opacity-50"
+                            style={{ background: "rgba(0,0,0,0.6)" }}
+                          >
+                            <X className="size-4" />
+                          </button>
+                        </>
                       ) : (
                         <div className="flex flex-col items-center gap-1">
                           <Camera className="size-6" />
@@ -998,6 +988,46 @@ export function CommunityReportCard({ t, isDark, report, onChange }: CommunityRe
                       </button>
                     </div>
                   </div>
+
+                {/* Full-screen camera capture overlay (in-app stream, desktop). */}
+                {cameraOpen && createPortal(
+                  <div className="fixed inset-0 z-[5000] flex flex-col bg-black">
+                    {cameraError ? (
+                      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center text-sm text-white">
+                        <AlertTriangle className="size-6" style={{ color: "#F59E0B" }} />
+                        {cameraError}
+                      </div>
+                    ) : (
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="flex-1 h-full w-full object-contain"
+                        style={{ transform: "scaleX(-1)" }}
+                      />
+                    )}
+                    <div
+                      className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 p-6"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}
+                    >
+                      <button
+                        onClick={closeCamera}
+                        className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={capturePhoto}
+                        disabled={!!cameraError}
+                        className="flex items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold text-white transition-colors disabled:opacity-50"
+                        style={{ background: "#2563EB" }}
+                      >
+                        <Camera className="size-4" /> Capture
+                      </button>
+                    </div>
+                  </div>,
+                  document.body
                 )}
 
                 {verifyError && (

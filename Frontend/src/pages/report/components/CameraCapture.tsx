@@ -80,76 +80,73 @@ export function CameraCapture({
     );
   };
 
-  const panel = isDark ? "#0B1120" : "#FFFFFF";
-  const text = isDark ? "#E2E8F0" : "#0F172A";
-  const border = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,23,42,0.08)";
+  const flipBg = isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.18)";
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[3000] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.82)" }}
-      onClick={onClose}
+      className="fixed inset-0 z-[3000] flex flex-col"
+      style={{ background: "#000" }}
     >
-      <div
-        className="relative w-full max-w-lg rounded-3xl overflow-hidden"
-        style={{ background: panel, border: `1px solid ${border}` }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: `1px solid ${border}` }}>
-          <span className="font-bold text-sm" style={{ color: text }}>Take a photo</span>
-          <button onClick={onClose} aria-label="Close" style={{ color: text }}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4">
+        <span className="font-bold text-sm text-white">Take a photo</span>
+        <button onClick={onClose} aria-label="Close" className="text-white">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
 
-        <div className="relative" style={{ aspectRatio: "4 / 3", background: "#000" }}>
-          {error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-3 px-6">
-              <p className="text-sm text-white/90">{error}</p>
-              <button
-                onClick={onChooseFile}
-                className="inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2 text-white"
-                style={{ background: "#2563EB" }}
-              >
-                <ImageIcon className="w-4 h-4" /> Upload a file instead
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-              {!ready && (
-                <div className="absolute inset-0 flex items-center justify-center text-white/80 text-sm">
-                  Starting camera…
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {!error && (
-          <div className="flex items-center justify-center gap-4 p-4">
+      {/* Full-screen video area */}
+      <div className="relative flex-1 overflow-hidden bg-black">
+        {error ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-3 px-6">
+            <p className="text-sm text-white/90">{error}</p>
             <button
-              onClick={() => setFacing((f) => (f === "environment" ? "user" : "environment"))}
-              className="inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2.5"
-              style={{ background: isDark ? "rgba(255,255,255,0.07)" : "#F1F5F9", color: text }}
+              onClick={onChooseFile}
+              className="inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2 text-white"
+              style={{ background: "#2563EB" }}
             >
-              <SwitchCamera className="w-4 h-4" /> Flip
-            </button>
-            <button
-              onClick={capture}
-              disabled={!ready}
-              className="inline-flex items-center gap-2 text-sm font-bold rounded-full px-6 py-3 text-white"
-              style={{ background: "#2563EB", opacity: ready ? 1 : 0.6, boxShadow: "0 6px 20px rgba(37,99,235,0.35)" }}
-            >
-              <Aperture className="w-5 h-5" /> Capture
+              <ImageIcon className="w-4 h-4" /> Upload a file instead
             </button>
           </div>
+        ) : (
+          <>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
+            {!ready && (
+              <div className="absolute inset-0 flex items-center justify-center text-white/80 text-sm">
+                Starting camera…
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {/* Controls */}
+      {!error && (
+        <div
+          className="flex items-center justify-center gap-4 p-6"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}
+        >
+          <button
+            onClick={() => setFacing((f) => (f === "environment" ? "user" : "environment"))}
+            className="inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-2.5 text-white"
+            style={{ background: flipBg }}
+          >
+            <SwitchCamera className="w-4 h-4" /> Flip
+          </button>
+          <button
+            onClick={capture}
+            disabled={!ready}
+            className="inline-flex items-center gap-2 text-sm font-bold rounded-full px-6 py-3 text-white"
+            style={{ background: "#2563EB", opacity: ready ? 1 : 0.6, boxShadow: "0 6px 20px rgba(37,99,235,0.35)" }}
+          >
+            <Aperture className="w-5 h-5" /> Capture
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 }
