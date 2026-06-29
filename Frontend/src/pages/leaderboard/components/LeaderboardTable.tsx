@@ -9,17 +9,17 @@ interface LeaderboardTableProps {
   hasSearch: boolean;
 }
 
-const COLS = "grid grid-cols-[60px_1.4fr_90px_90px_120px] md:grid-cols-[80px_1.4fr_110px_110px_130px]";
+const COLS = "grid gap-x-3 grid-cols-[40px_1fr_auto] sm:grid-cols-[56px_1fr_90px_90px] md:grid-cols-[80px_1.4fr_110px_110px_130px]";
 
 export function LeaderboardTable({ t, isDark, entries, hasSearch }: LeaderboardTableProps) {
   return (
     <div
-      className="rounded-3xl border p-6 grid gap-4"
+      className="rounded-3xl border p-4 md:p-6 grid gap-4"
       style={{ background: t.card, borderColor: t.cardBorder, boxShadow: t.cardShadow }}
     >
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-2">
         <div>
-          <div className="font-semibold text-xl" style={{ color: t.text }}>
+          <div className="font-semibold text-lg md:text-xl" style={{ color: t.text }}>
             Leaderboard Table
           </div>
           <div className="text-sm" style={{ color: t.textSub }}>
@@ -27,7 +27,7 @@ export function LeaderboardTable({ t, isDark, entries, hasSearch }: LeaderboardT
           </div>
         </div>
         <span
-          className="rounded-full text-xs font-medium px-2.5 py-1"
+          className="rounded-full text-xs font-medium px-2.5 py-1 shrink-0"
           style={{ background: t.tagBg, color: t.tagText }}
         >
           Live updates
@@ -36,14 +36,14 @@ export function LeaderboardTable({ t, isDark, entries, hasSearch }: LeaderboardT
 
       <div className="rounded-3xl border overflow-hidden" style={{ borderColor: t.cardBorder }}>
         <div
-          className={`${COLS} font-medium uppercase text-xs tracking-wide px-5 py-3`}
+          className={`${COLS} font-medium uppercase text-xs tracking-wide px-3 md:px-5 py-3`}
           style={{ background: t.tagBg, color: t.tagText, borderBottom: `1px solid ${t.divider}` }}
         >
           <div>Rank</div>
           <div>Name</div>
-          <div>Level</div>
+          <div className="hidden sm:block">Level</div>
           <div>Points</div>
-          <div>Badge</div>
+          <div className="hidden md:block">Badge</div>
         </div>
 
         {entries.length === 0 ? (
@@ -60,7 +60,7 @@ export function LeaderboardTable({ t, isDark, entries, hasSearch }: LeaderboardT
             return (
               <div
                 key={e.id}
-                className={`${COLS} px-5 py-4 items-center`}
+                className={`${COLS} px-3 md:px-5 py-4 items-center`}
                 style={{
                   background: rowBg,
                   borderTop: i === 0 ? "none" : `1px solid ${t.divider}`,
@@ -89,13 +89,13 @@ export function LeaderboardTable({ t, isDark, entries, hasSearch }: LeaderboardT
                     </div>
                   </div>
                 </div>
-                <div className="font-medium text-sm" style={{ color: t.text }}>
+                <div className="hidden sm:block font-medium text-sm" style={{ color: t.text }}>
                   Level {e.level}
                 </div>
-                <div className="font-medium text-sm" style={{ color: t.text }}>
+                <div className="font-medium text-sm whitespace-nowrap" style={{ color: t.text }}>
                   {e.points.toLocaleString()}
                 </div>
-                <div>
+                <div className="hidden md:block">
                   <span
                     className="rounded-full text-xs font-medium px-2.5 py-1 inline-block"
                     style={{
