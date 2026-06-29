@@ -413,7 +413,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
                     className="rounded-2xl px-4 py-3 text-sm font-medium"
                     style={{
                       background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
-                      color: isDark ? "#FCA5A5" : "#DC2626",
+                      color: "#FF0000",
                       border: "1px solid rgba(239,68,68,0.35)",
                       backdropFilter: "blur(8px)",
                       WebkitBackdropFilter: "blur(8px)",
