@@ -13,6 +13,12 @@ import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
+// Trust the first proxy hop (Render/Vercel/Cloud Run sit behind one reverse
+// proxy that sets X-Forwarded-For). Required so express-rate-limit can read the
+// real client IP. Use 1 — not `true` — so clients can't spoof X-Forwarded-For
+// to bypass rate limiting.
+app.set("trust proxy", 1);
+
 // --- Security & core middleware ---
 app.use(helmet());
 const allowedOrigins =
