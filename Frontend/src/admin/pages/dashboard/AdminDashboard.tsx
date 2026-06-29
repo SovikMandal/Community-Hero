@@ -6,7 +6,7 @@ import { AdminMission } from "./AdminMission";
 import {
   FileText,
   CheckCircle2,
-  Building2,
+  Zap,
   Users,
   MapPin,
   ChevronUp,
@@ -206,6 +206,12 @@ export function AdminDashboard({ isDark }: { isDark?: boolean }) {
   const total = data?.issues.total ?? 0;
   const recent: Issue[] = data?.recentIssues ?? [];
 
+  // Open issues = everything still in progress (excludes completed + rejected).
+  const openIssues = Math.max(
+    total - (data?.issues.resolved ?? byStatus.COMPLETED ?? 0) - (byStatus.REJECTED ?? 0),
+    0
+  );
+
   // Pipeline stages mirror the citizen dashboard's resolution stages.
   const pipeline = [
     { label: "Reported",  value: byStatus.REPORTED ?? 0, color: "#2563EB" },
@@ -246,7 +252,7 @@ export function AdminDashboard({ isDark }: { isDark?: boolean }) {
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard icon={FileText} label="Total Reports" value={String(total)} accent="#2563EB" />
             <StatCard icon={CheckCircle2} label="Resolved" value={String(data?.issues.resolved ?? 0)} accent="#16A34A" />
-            <StatCard icon={Building2} label="Departments" value={String(data?.departments ?? 0)} accent="#7C3AED" />
+            <StatCard icon={Zap} label="Open Issues" value={String(openIssues)} accent="#7C3AED" />
             <StatCard icon={Users} label="Active Citizens" value={String(data?.users.citizens ?? 0)} accent="#D97706" />
           </div>
 
