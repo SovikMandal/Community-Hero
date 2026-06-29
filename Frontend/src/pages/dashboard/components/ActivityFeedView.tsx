@@ -155,9 +155,11 @@ export function ActivityFeedView({ t, isDark, onBack, onSelect }: ActivityFeedVi
                           className="absolute left-0 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border-2"
                           style={{ background: color, borderColor: color, boxShadow: `0 0 0 3px ${color}22` }}
                         />
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.97 }}
+                          whileHover={{ backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }}
                           onClick={() => e.issueId && onSelect(e.issueId)}
-                          className="min-w-0 flex-1 text-left"
+                          className="min-w-0 flex-1 text-left cursor-pointer rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-colors"
                         >
                           <p className="mb-0.5 font-mono text-xs" style={{ color: t.textMuted }}>
                             {timeAgo(e.createdAt)}
@@ -169,7 +171,7 @@ export function ActivityFeedView({ t, isDark, onBack, onSelect }: ActivityFeedVi
                             {e.issueTitle}
                             {e.reportType === "merged" ? " · supported" : ""}
                           </p>
-                        </button>
+                        </motion.button>
                       </motion.div>
                     );
                   })}
