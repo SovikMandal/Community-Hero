@@ -97,7 +97,7 @@ function DepartmentCard({
       {/* Accent header */}
       <div className="relative p-5" style={{ background: `linear-gradient(135deg, ${accent}1f, transparent 70%)` }}>
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
               className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl shadow-md ring-1"
               style={{
