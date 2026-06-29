@@ -485,12 +485,15 @@ export function CommunityReportCard({ t, isDark, report, onChange }: CommunityRe
               disabled={verifyDisabled || report.isMine}
               onClick={() => openVerify("NO")}
             />
-            <OptionButton
-              t={t} isDark={isDark} label="Add Evidence" icon={Camera} color="#2563EB"
-              active={false}
-              disabled={verifyDisabled}
-              onClick={() => fileInputRef.current?.click()}
-            />
+            {/* Add Evidence is hidden on mobile; available from md up. */}
+            <div className="hidden md:block">
+              <OptionButton
+                t={t} isDark={isDark} label="Add Evidence" icon={Camera} color="#2563EB"
+                active={false}
+                disabled={verifyDisabled}
+                onClick={() => fileInputRef.current?.click()}
+              />
+            </div>
           </div>
         </div>
 
@@ -1116,7 +1119,7 @@ function OptionButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="font-medium rounded-xl border text-xs leading-4 flex px-3 py-2 justify-center items-center gap-2 transition-colors disabled:opacity-50"
+      className="w-full font-medium rounded-xl border text-xs leading-4 flex px-3 py-2 justify-center items-center gap-2 transition-colors disabled:opacity-50"
       style={{
         background: active ? (isDark ? "rgba(37,99,235,0.18)" : "#EFF6FF") : t.card,
         borderColor: active ? "#2563EB" : t.inputBorder,
