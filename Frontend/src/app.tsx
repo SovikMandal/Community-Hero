@@ -58,7 +58,7 @@ export default function App() {
     return () => { active = false; };
   }, []);
 
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleLogin = async (email: string, password: string, asAdmin = false) => {
     const loggedIn = await login({ email, password });
