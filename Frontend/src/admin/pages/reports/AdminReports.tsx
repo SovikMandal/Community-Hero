@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GridBackground } from "../../../components/GridBackground";
 import {
   Search,
   MapPin,
   ChevronUp,
-  ChevronLeft,
-  ChevronRight,
   FileText,
+  Loader2,
 } from "lucide-react";
 import {
   admin,
@@ -20,7 +19,6 @@ import {
   type Issue,
   type IssueCategory,
   type IssueStatus,
-  type Pagination,
 } from "../../../lib";
 
 // Title-cases a priority enum value (e.g. "CRITICAL" → "Critical").
@@ -51,7 +49,7 @@ const STATUS_OPTIONS: IssueStatus[] = [
   "REJECTED",
 ];
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 10;
 
 const fieldClass =
   "rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium text-foreground outline-none transition-colors focus:border-blue-400";
@@ -59,16 +57,19 @@ const fieldClass =
 export function AdminReports({ isDark }: { isDark?: boolean }) {
   const navigate = useNavigate();
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);          // initial / filter-change load
+  const [loadingMore, setLoadingMore] = useState(false); // appending the next page
   const [error, setError] = useState<string | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Filters
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<IssueStatus | "">("");
   const [category, setCategory] = useState<IssueCategory | "">("");
-  const [page, setPage] = useState(1);
 
   // The id currently being updated (disables its select while in flight).
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -79,21 +80,14 @@ export function AdminReports({ isDark }: { isDark?: boolean }) {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Show the loading state + clear errors during render whenever the request
-  // inputs change — avoids calling setState synchronously inside an effect.
-  const reqSig = `${page}|${debouncedSearch}|${status}|${category}`;
-  const [startedSig, setStartedSig] = useState<string | null>(null);
-  if (reqSig !== startedSig) {
-    setStartedSig(reqSig);
-    setLoading(true);
-    setError(null);
-  }
-
+  // Reset and load the first page whenever the filters change.
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError(null);
     admin.issues
       .list({
-        page,
+        page: 1,
         limit: PAGE_SIZE,
         q: debouncedSearch || undefined,
         status: status || undefined,
@@ -102,15 +96,52 @@ export function AdminReports({ isDark }: { isDark?: boolean }) {
       .then((r) => {
         if (!active) return;
         setIssues(r.items);
-        setPagination(r.pagination ?? null);
+        setPage(1);
+        setTotalPages(r.pagination?.totalPages ?? 1);
+        setTotal(r.pagination?.total ?? r.items.length);
       })
       .catch(() => { if (active) setError("Couldn't load reports. Please try again."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [page, debouncedSearch, status, category]);
+  }, [debouncedSearch, status, category]);
 
-  const totalPages = pagination?.totalPages ?? 1;
-  const total = pagination?.total ?? issues.length;
+  const hasMore = page < totalPages;
+
+  // Append the next page. Guarded so fast scrolling / end-of-list can't fire
+  // duplicate or out-of-range requests.
+  const loadMore = useCallback(() => {
+    if (loading || loadingMore || page >= totalPages) return;
+    const next = page + 1;
+    setLoadingMore(true);
+    admin.issues
+      .list({
+        page: next,
+        limit: PAGE_SIZE,
+        q: debouncedSearch || undefined,
+        status: status || undefined,
+        category: category || undefined,
+      })
+      .then((r) => {
+        setIssues((prev) => [...prev, ...r.items]);
+        setPage(next);
+        setTotalPages(r.pagination?.totalPages ?? totalPages);
+      })
+      .catch(() => setError("Couldn't load more reports. Please try again."))
+      .finally(() => setLoadingMore(false));
+  }, [loading, loadingMore, page, totalPages, debouncedSearch, status, category]);
+
+  // Infinite scroll: load the next page when the sentinel near the list bottom
+  // scrolls into view. rootMargin pre-fetches slightly before the actual end.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0]?.isIntersecting) loadMore(); },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   async function handleStatusChange(issue: Issue, next: IssueStatus) {
     if (next === issue.status) return;
@@ -124,13 +155,6 @@ export function AdminReports({ isDark }: { isDark?: boolean }) {
       setUpdatingId(null);
     }
   }
-
-  const showingRange = useMemo(() => {
-    if (total === 0) return "0";
-    const start = (page - 1) * PAGE_SIZE + 1;
-    const end = Math.min(page * PAGE_SIZE, total);
-    return `${start}–${end} of ${total}`;
-  }, [page, total]);
 
   return (
     <div className="relative min-h-full">
@@ -155,14 +179,14 @@ export function AdminReports({ isDark }: { isDark?: boolean }) {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title or location…"
             className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-blue-400"
           />
         </div>
         <select
           value={status}
-          onChange={(e) => { setStatus(e.target.value as IssueStatus | ""); setPage(1); }}
+          onChange={(e) => setStatus(e.target.value as IssueStatus | "")}
           className={fieldClass}
         >
           <option value="">All statuses</option>
@@ -172,7 +196,7 @@ export function AdminReports({ isDark }: { isDark?: boolean }) {
         </select>
         <select
           value={category}
-          onChange={(e) => { setCategory(e.target.value as IssueCategory | ""); setPage(1); }}
+          onChange={(e) => setCategory(e.target.value as IssueCategory | "")}
           className={fieldClass}
         >
           <option value="">All categories</option>
@@ -284,35 +308,21 @@ export function AdminReports({ isDark }: { isDark?: boolean }) {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        {!loading && issues.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border px-5 py-3">
-            <span className="text-xs font-medium text-muted-foreground">Showing {showingRange}</span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="text-xs font-semibold text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
-                aria-label="Next page"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Infinite-scroll sentinel + loader */}
+      <div ref={sentinelRef} className="h-px" />
+      {loadingMore && (
+        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading more reports…
+        </div>
+      )}
+      {!loading && !loadingMore && !hasMore && issues.length > 0 && (
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          You've reached the end · {total} report{total === 1 ? "" : "s"} total
+        </p>
+      )}
     </div>
       </div>
     </div>
