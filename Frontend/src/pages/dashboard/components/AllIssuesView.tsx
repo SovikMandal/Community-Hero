@@ -27,16 +27,16 @@ export function AllIssuesView({ isDark, t, onBack, onSelect }: AllIssuesViewProp
           <p className="text-sm" style={{ color: t.textSub }}>Your submitted community issues</p>
           <h1 className="font-semibold text-2xl md:text-3xl tracking-tight mt-1" style={{ color: t.text }}>All Reports</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="rounded-full flex px-4 py-2 items-center gap-2 border"
-            style={{ background: t.card, borderColor: t.inputBorder }}>
-            <Search className="w-4 h-4" style={{ color: t.textMuted }} />
-            <span className="text-sm" style={{ color: t.textMuted }}>Search reports</span>
-          </div>
-          <button onClick={onBack} className="rounded-full font-semibold text-sm px-5 py-2.5 text-white"
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button onClick={onBack} className="rounded-full font-semibold text-sm px-5 py-2.5 text-white flex-shrink-0 order-1 sm:order-2"
             style={{ background: "#2563EB" }}>
             <ArrowLeft className="w-4 h-4 inline mr-1" />Back
           </button>
+          <div className="rounded-full flex px-4 py-2 items-center gap-2 border flex-1 sm:flex-none order-2 sm:order-1"
+            style={{ background: t.card, borderColor: t.inputBorder }}>
+            <Search className="w-4 h-4 flex-shrink-0" style={{ color: t.textMuted }} />
+            <span className="text-sm" style={{ color: t.textMuted }}>Search reports</span>
+          </div>
         </div>
       </div>
 
@@ -53,21 +53,23 @@ export function AllIssuesView({ isDark, t, onBack, onSelect }: AllIssuesViewProp
           return (
             <div key={issue.id}
               onClick={() => onSelect(issue.id)}
-              className="flex p-4 items-center gap-4 cursor-pointer transition-colors hover:bg-gray-900"
+              className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 cursor-pointer transition-colors hover:bg-gray-900"
               style={{ borderBottom: i < allIssues.length - 1 ? `1px solid ${t.divider}` : "none" }}>
-              <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: t.tagBg }}>
-                {img
-                  ? <img src={img} alt={issue.title} className="w-full h-full object-cover" />
-                  : <MapPin className="w-5 h-5" style={{ color: t.textMuted }} />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-semibold text-base" style={{ color: t.text }}>{issue.title}</div>
-                <div className="flex mt-1 items-center gap-2 text-sm" style={{ color: t.textSub }}>
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{loc}</span>
+              <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center" style={{ background: t.tagBg }}>
+                  {img
+                    ? <img src={img} alt={issue.title} className="w-full h-full object-cover" />
+                    : <MapPin className="w-5 h-5" style={{ color: t.textMuted }} />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-semibold text-base" style={{ color: t.text }}>{issue.title}</div>
+                  <div className="flex mt-1 items-center gap-2 text-sm" style={{ color: t.textSub }}>
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{loc}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap sm:flex-shrink-0 pl-[4.5rem] sm:pl-0">
                 {issue.myReportType && (
                   <div
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold capitalize"

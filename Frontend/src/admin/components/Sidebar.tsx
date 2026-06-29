@@ -80,7 +80,7 @@ function SidebarBody({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
 
         <button
           onClick={onLogout}
-          className="flex w-full items-center gap-3.5 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10"
+          className="flex w-full items-center gap-3.5 rounded-2xl px-4 py-3 text-left text-sm font-semibold text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 cursor-pointer"
         >
           <LogOut className="h-5 w-5 shrink-0" />
           <span className="truncate">Logout</span>
