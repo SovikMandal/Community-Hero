@@ -89,6 +89,13 @@ export const login = asyncHandler(async (req, res) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) throw ApiError.unauthorized("Invalid credentials");
 
+  // Admin accounts must never receive a session from the standard login
+  // endpoint — that would bypass the emailed-OTP second factor. Force them
+  // through the dedicated two-factor admin login (POST /auth/admin/login).
+  if (user.role === "ADMIN") {
+    throw ApiError.forbidden("Admin accounts must sign in through the Admin tab.");
+  }
+
   const tokens = await generateTokens(user);
   return sendSuccess(res, { user: publicUser(user), ...tokens }, "Login successful");
 });
