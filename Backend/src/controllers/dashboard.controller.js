@@ -13,9 +13,13 @@ import { computeRankedUsers, POINTS_PER_LEVEL } from "../services/leaderboard.se
  * Pass ?mine=true to scope all metrics to the signed-in user's own reports.
  */
 export const getStats = asyncHandler(async (req, res) => {
+  // For the signed-in user's own stats ("mine") we count every report they
+  // created — including REJECTED ones — so the total and resolved rate line up
+  // with what they expect. Merged/supported reports are intentionally excluded
+  // (scoped to reporterId only), so this total stays "reports you filed".
   const mine = req.query.mine === "true" && !!req.user;
   const base = mine
-    ? { reporterId: req.user.id, status: { not: "REJECTED" } }
+    ? { reporterId: req.user.id }
     : { status: { not: "REJECTED" } };
   const baseCompleted = mine
     ? { reporterId: req.user.id, status: "COMPLETED" }
