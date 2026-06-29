@@ -180,7 +180,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
 
   return (
     <div
-      className="min-h-screen w-full flex overflow-x-hidden relative"
+      className={(isDark ? "dark " : "") + "min-h-screen w-full flex overflow-x-hidden relative"}
       style={{ fontFamily: "Inter, sans-serif", scrollbarWidth: "none" }}
     >
       <style>{`::-webkit-scrollbar { display: none; }`}</style>
