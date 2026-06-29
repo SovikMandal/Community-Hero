@@ -134,12 +134,12 @@ export function TrackIssueView({ issueId, isDark, t }: TrackIssueViewProps) {
         {/* Status card */}
         <div className="rounded-3xl border p-4 md:p-6" style={{ background: t.card, borderColor: t.cardBorder, boxShadow: t.cardShadow }}>
           <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-            <div>
+            <div className="min-w-0">
               <div className="font-medium text-sm text-blue-500">Live status</div>
-              <h2 className="font-semibold text-xl md:text-2xl tracking-tight mt-1" style={{ color: t.text }}>{issue.title}</h2>
-              <p className="text-sm mt-2" style={{ color: t.textSub }}>{loc} · Submitted {timeAgo(issue.createdAt)}</p>
+              <h2 className="font-semibold text-lg sm:text-xl md:text-2xl tracking-tight mt-1 break-words" style={{ color: t.text }}>{issue.title}</h2>
+              <p className="text-sm mt-2 break-words" style={{ color: t.textSub }}>{loc} · Submitted {timeAgo(issue.createdAt)}</p>
             </div>
-            <span className="rounded-full text-xs font-semibold px-3 py-1.5" style={{ background: `${statusColor}15`, color: statusColor }}>{issueStatusLabel}</span>
+            <span className="rounded-full text-xs font-semibold px-3 py-1.5 shrink-0 whitespace-nowrap" style={{ background: `${statusColor}15`, color: statusColor }}>{issueStatusLabel}</span>
           </div>
 
           {/* Rejection reason banner */}
@@ -160,7 +160,7 @@ export function TrackIssueView({ issueId, isDark, t }: TrackIssueViewProps) {
           <div className="grid mt-6 gap-4">
             {/* Timeline */}
             <div className="rounded-2xl border p-4" style={{ background: isDark ? "rgba(255,255,255,0.02)" : "rgba(244,244,245,0.3)", borderColor: t.inputBorder }}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1">
                 <div className="font-medium text-sm" style={{ color: t.text }}>Progress timeline</div>
                 <div className="text-xs" style={{ color: t.textSub }}>Updated {timeAgo(issue.updatedAt)}</div>
               </div>
@@ -176,10 +176,9 @@ export function TrackIssueView({ issueId, isDark, t }: TrackIssueViewProps) {
                       }}>
                       {step.done ? <Check className="w-4 h-4" /> : <div className="w-2 h-2 rounded-full" style={{ background: t.textMuted }} />}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="font-medium text-sm truncate" style={{ color: step.done ? t.text : t.textMuted }}>{step.label}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <div className="font-medium text-sm break-words" style={{ color: step.done ? t.text : t.textMuted }}>{step.label}</div>
                           {step.label === "Rejected" ? (
                             <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded-full px-2 py-0.5"
                               style={{ background: "rgba(220,38,38,0.12)", color: "#DC2626" }}>
@@ -196,15 +195,14 @@ export function TrackIssueView({ issueId, isDark, t }: TrackIssueViewProps) {
                               Pending
                             </span>
                           )}
-                        </div>
                         {step.timestamp && (
-                          <div className="flex shrink-0 items-center gap-1 text-xs" style={{ color: t.textSub }}>
+                          <div className="flex shrink-0 items-center gap-1 text-xs ml-auto" style={{ color: t.textSub }}>
                             <Clock className="w-3 h-3" />
                             {timeAgo(step.timestamp)}
                           </div>
                         )}
                       </div>
-                      <div className="text-xs" style={{ color: t.textSub }}>{step.desc}</div>
+                      <div className="text-xs mt-0.5" style={{ color: t.textSub }}>{step.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -213,13 +211,13 @@ export function TrackIssueView({ issueId, isDark, t }: TrackIssueViewProps) {
 
             {/* Current stage */}
             <div className="rounded-2xl border p-4" style={{ background: t.card, borderColor: t.inputBorder }}>
-              <div className="flex justify-between items-center">
-                <div>
+              <div className="flex justify-between items-center gap-3">
+                <div className="min-w-0">
                   <div className="font-medium text-sm" style={{ color: t.text }}>Current stage</div>
-                  <div className="font-semibold text-2xl mt-1" style={{ color: isRejected ? "#DC2626" : "#2563EB" }}>{currentStage}</div>
+                  <div className="font-semibold text-xl md:text-2xl mt-1 break-words" style={{ color: isRejected ? "#DC2626" : "#2563EB" }}>{currentStage}</div>
                 </div>
-                <div className="w-14 h-14 rounded-full flex justify-center items-center" style={{ background: isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.08)", color: "#2563EB" }}>
-                  <Target className="w-7 h-7" />
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full shrink-0 flex justify-center items-center" style={{ background: isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.08)", color: "#2563EB" }}>
+                  <Target className="w-6 h-6 md:w-7 md:h-7" />
                 </div>
               </div>
               <div className="grid mt-4 gap-3">
