@@ -514,6 +514,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
                 value={form.email}
                 onChange={(v) => setForm({ ...form, email: v })}
                 required
+                autoComplete={tab === "signup" ? "email" : "off"}
               />
 
               <div>
@@ -536,6 +537,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
                   value={form.password}
                   onChange={(v) => setForm({ ...form, password: v })}
                   required
+                  autoComplete="new-password"
                   rightSlot={
                     <button
                       type="button"
