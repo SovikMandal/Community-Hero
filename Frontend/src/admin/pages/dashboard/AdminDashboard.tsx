@@ -117,7 +117,7 @@ function activityLabel(e: AdminActivityEvent): string {
 // Vertical activity feed mirroring the citizen dashboard's Activity Timeline.
 // Renders real lifecycle events (reported → verified → routed → inspected →
 // repair started → completed) across all reports.
-function ActivityTimeline({ events, onViewAll }: { events: AdminActivityEvent[]; onViewAll?: () => void }) {
+function ActivityTimeline({ events, onViewAll, onSelect }: { events: AdminActivityEvent[]; onViewAll?: () => void; onSelect?: (issueId: string) => void }) {
   return (
     <div className="rounded-2xl border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -156,14 +156,19 @@ function ActivityTimeline({ events, onViewAll }: { events: AdminActivityEvent[];
                       className="absolute left-0 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border-2"
                       style={{ background: color, borderColor: color, boxShadow: `0 0 0 3px ${color}22` }}
                     />
-                    <div className="min-w-0">
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => e.issueId && onSelect?.(e.issueId)}
+                      className="min-w-0 text-left cursor-pointer rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-colors hover:bg-accent"
+                    >
                       <p className="mb-0.5 font-mono text-xs text-muted-foreground">{timeAgo(e.createdAt)}</p>
                       <p className="text-sm font-semibold text-foreground">{activityLabel(e)}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {e.issueTitle}
                         {e.actor ? ` · by ${e.actor}` : ""}
                       </p>
-                    </div>
+                    </motion.button>
                   </motion.div>
                 );
               })}
@@ -318,7 +323,7 @@ export function AdminDashboard({ isDark }: { isDark?: boolean }) {
 
           {/* Activity timeline */}
           <div className="mt-6">
-            <ActivityTimeline events={activity} onViewAll={() => navigate("/admin/activity")} />
+            <ActivityTimeline events={activity} onViewAll={() => navigate("/admin/activity")} onSelect={(id) => navigate(`/admin/reports/${id}`)} />
           </div>
         </>
       )}

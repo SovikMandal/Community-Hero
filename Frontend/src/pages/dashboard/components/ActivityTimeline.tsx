@@ -8,6 +8,8 @@ interface ActivityTimelineProps {
   /** Recent lifecycle events for the user's own + supported reports. */
   events?: MyActivityEvent[];
   onViewAll?: () => void;
+  /** Open the report when an activity row is clicked. */
+  onSelect?: (issueId: string) => void;
 }
 
 const STATUS_COLOR: Record<IssueStatus, string> = {
@@ -45,7 +47,7 @@ function activityLabel(e: MyActivityEvent): string {
   }
 }
 
-export function ActivityTimeline({ t, isDark, events, onViewAll }: ActivityTimelineProps) {
+export function ActivityTimeline({ t, isDark, events, onViewAll, onSelect }: ActivityTimelineProps) {
   const items = (events ?? []).slice(0, 6);
 
   if (items.length === 0) return null;
@@ -81,14 +83,20 @@ export function ActivityTimeline({ t, isDark, events, onViewAll }: ActivityTimel
                 className="flex items-start gap-4">
                 <div className="absolute left-0 w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5"
                   style={{ background: color, borderColor: color, boxShadow: `0 0 0 3px ${color}22` }} />
-                <div className="min-w-0">
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }}
+                  onClick={() => e.issueId && onSelect?.(e.issueId)}
+                  className="min-w-0 text-left cursor-pointer rounded-lg px-2 py-1.5 -mx-2 -my-1.5 transition-colors"
+                >
                   <p className="text-xs font-mono mb-0.5" style={{ color: t.textMuted }}>{timeAgo(e.createdAt)}</p>
                   <p className="text-sm font-semibold" style={{ color: t.text }}>{activityLabel(e)}</p>
                   <p className="truncate text-xs" style={{ color: t.textSub }}>
                     {e.issueTitle}
                     {e.reportType === "merged" ? " · supported" : ""}
                   </p>
-                </div>
+                </motion.button>
               </motion.div>
             );
           })}

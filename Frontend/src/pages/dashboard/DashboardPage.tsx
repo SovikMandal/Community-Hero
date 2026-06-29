@@ -370,7 +370,7 @@ export function DashboardPage({ user, onSignOut, isDark, onToggleDark, userLocat
                 onSelect={(id) => nav(`/track/${id}`)}
               />
 
-              <ActivityTimeline t={t} isDark={isDark} events={myActivity} onViewAll={() => nav("/activity")} />
+              <ActivityTimeline t={t} isDark={isDark} events={myActivity} onViewAll={() => nav("/activity")} onSelect={(id) => nav(`/track/${id}`)} />
 
               <CommunityFeed t={t} isDark={isDark} issues={issueList} />
 
