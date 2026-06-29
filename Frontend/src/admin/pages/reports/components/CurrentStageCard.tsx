@@ -23,13 +23,13 @@ export function CurrentStageCard({
 }) {
   return (
     <div className="rounded-2xl border p-4" style={{ background: "transparent", borderColor: t.inputBorder }}>
-      <div className="flex justify-between items-center">
-        <div>
+      <div className="flex justify-between items-center gap-3">
+        <div className="min-w-0">
           <div className="font-medium text-sm" style={{ color: t.text }}>Current stage</div>
-          <div className="font-semibold text-2xl mt-1" style={{ color: isRejected ? "#DC2626" : "#2563EB" }}>{currentStage}</div>
+          <div className="font-semibold text-xl md:text-2xl mt-1 break-words" style={{ color: isRejected ? "#DC2626" : "#2563EB" }}>{currentStage}</div>
         </div>
-        <div className="w-14 h-14 rounded-full flex justify-center items-center" style={{ background: isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.08)", color: "#2563EB" }}>
-          <Target className="w-7 h-7" />
+        <div className="w-12 h-12 md:w-14 md:h-14 rounded-full shrink-0 flex justify-center items-center" style={{ background: isDark ? "rgba(37,99,235,0.12)" : "rgba(37,99,235,0.08)", color: "#2563EB" }}>
+          <Target className="w-6 h-6 md:w-7 md:h-7" />
         </div>
       </div>
       <div className="grid mt-4 gap-3">

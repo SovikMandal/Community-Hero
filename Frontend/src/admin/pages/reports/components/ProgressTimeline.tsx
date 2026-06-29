@@ -17,7 +17,7 @@ export function ProgressTimeline({
 }) {
   return (
     <div className="rounded-2xl border p-4" style={{ background: surface.timelineBg, borderColor: t.inputBorder }}>
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1">
         <div className="font-medium text-sm" style={{ color: t.text }}>Progress timeline</div>
         <div className="text-xs" style={{ color: t.textSub }}>Updated {timeAgo(updatedAt)}</div>
       </div>
@@ -37,10 +37,9 @@ export function ProgressTimeline({
                   ? <Clock className="w-4 h-4" />
                   : <div className="w-2 h-2 rounded-full" style={{ background: t.textMuted }} />}
             </div>
-            <div className="flex-1">
-              <div className="flex justify-between items-center gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="font-medium text-sm truncate" style={{ color: step.state !== "pending" ? t.text : t.textMuted }}>{step.label}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <div className="font-medium text-sm break-words" style={{ color: step.state !== "pending" ? t.text : t.textMuted }}>{step.label}</div>
                   {step.label === "Rejected" ? (
                     <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded-full px-2 py-0.5" style={{ background: "rgba(220,38,38,0.12)", color: "#DC2626" }}>Rejected</span>
                   ) : step.state === "done" ? (
@@ -54,15 +53,14 @@ export function ProgressTimeline({
                   ) : (
                     <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded-full px-2 py-0.5" style={{ background: t.tagBg, color: t.textMuted }}>Pending</span>
                   )}
-                </div>
                 {step.timestamp && (
-                  <div className="flex shrink-0 items-center gap-1 text-xs" style={{ color: t.textSub }}>
+                  <div className="flex shrink-0 items-center gap-1 text-xs ml-auto" style={{ color: t.textSub }}>
                     <Clock className="w-3 h-3" />
                     {timeAgo(step.timestamp)}
                   </div>
                 )}
               </div>
-              <div className="text-xs" style={{ color: t.textSub }}>{step.desc}</div>
+              <div className="text-xs mt-0.5" style={{ color: t.textSub }}>{step.desc}</div>
             </div>
           </div>
         ))}

@@ -40,16 +40,16 @@ export function StatusCard({
   return (
     <div className="rounded-3xl border p-4 md:p-6" style={{ background: surface.cardBg, borderColor: t.cardBorder, boxShadow: t.cardShadow, ...surface.blur }}>
       <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="font-medium text-sm text-blue-500">Live status</div>
-          <h2 className="font-semibold text-xl md:text-2xl tracking-tight mt-1" style={{ color: t.text }}>{issue.title}</h2>
-          <p className="text-sm mt-2 mb-3" style={{ color: t.textSub }}>{loc} · Submitted {timeAgo(issue.createdAt)}</p>
+          <h2 className="font-semibold text-lg sm:text-xl md:text-2xl tracking-tight mt-1 break-words" style={{ color: t.text }}>{issue.title}</h2>
+          <p className="text-sm mt-2 mb-3 break-words" style={{ color: t.textSub }}>{loc} · Submitted {timeAgo(issue.createdAt)}</p>
         </div>
-        <span className="rounded-full text-xs font-semibold px-3 py-1.5" style={{ background: `${statusColor}15`, color: statusColor }}>{issueStatusLabel}</span>
+        <span className="rounded-full text-xs font-semibold px-3 py-1.5 shrink-0 whitespace-nowrap" style={{ background: `${statusColor}15`, color: statusColor }}>{issueStatusLabel}</span>
       </div>
 
       {/* Accept / Reject actions */}
-      <div className="grid grid-cols-2 gap-3 mx-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
         <button
           onClick={onAccept}
           disabled={acceptDisabled}
