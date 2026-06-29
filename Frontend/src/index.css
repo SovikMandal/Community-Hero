@@ -304,6 +304,21 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  /*
+   * Show a pointer cursor on every interactive control. Tailwind's preflight
+   * resets buttons to the default arrow, so this restores the expected affordance
+   * across the app. Disabled controls keep the default cursor. Plain <div onClick>
+   * handlers aren't reachable from CSS — give those `role="button"` to opt in.
+   */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  summary,
+  label[for],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 
