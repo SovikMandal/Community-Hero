@@ -22,7 +22,7 @@ export function Greeting({ t, greeting, firstName, stats, dataError }: GreetingP
       </h1>
       <p className="text-sm" style={{ color: t.textSub }}>
         {stats
-          ? <>There are <strong style={{ color: t.text }}>{stats.totalComplaints - stats.resolved} open issues</strong> and <strong style={{ color: t.text }}>{stats.resolved} resolved</strong> citywide.</>
+          ? <>There are <strong style={{ color: t.text }}>{Math.max(stats.totalComplaints - stats.resolved - stats.rejected, 0)} open issues</strong> and <strong style={{ color: t.text }}>{stats.resolved} resolved</strong> citywide.</>
           : dataError
           ? <span style={{ color: "#EF4444" }}>{dataError}</span>
           : "Loading the latest community data…"}
