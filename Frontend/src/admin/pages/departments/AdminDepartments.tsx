@@ -14,6 +14,7 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  FolderOpen,
 } from "lucide-react";
 import { admin, type DepartmentWithStats } from "../../../lib";
 import { GridBackground } from "../../../components/GridBackground";
@@ -75,6 +76,8 @@ function DepartmentCard({
   const s = dept.stats;
   const rate = s.total > 0 ? Math.round((s.resolved / s.total) * 100) : 0;
   const rateColor = rate >= 70 ? "#16A34A" : rate >= 40 ? "#F59E0B" : "#DC2626";
+  // Open issues = still active (everything except resolved and rejected).
+  const openIssues = Math.max(s.total - s.resolved - s.rejected, 0);
 
   return (
     <motion.button
@@ -113,7 +116,17 @@ function DepartmentCard({
               </p>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <span
+              className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
+              style={{ background: `${accent}1f`, color: accent }}
+              title="Open issues"
+            >
+              <FolderOpen className="h-3 w-3" />
+              {openIssues} open
+            </span>
+            <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+          </div>
         </div>
       </div>
 
