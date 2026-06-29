@@ -28,6 +28,7 @@ interface ReportIssuePageProps {
 export function ReportIssuePage({ isDark, onBack }: ReportIssuePageProps) {
   const t = tk(isDark);
   const fileRef = useRef<HTMLInputElement>(null);
+  const captureInputRef = useRef<HTMLInputElement>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -73,6 +74,21 @@ export function ReportIssuePage({ isDark, onBack }: ReportIssuePageProps) {
       setUploadState("uploading");
     };
     reader.readAsDataURL(file);
+  };
+
+  // Open the camera. On mobile, launch the phone's native camera directly via a
+  // `capture` file input (same behaviour as the community page); on desktop use
+  // the in-app getUserMedia live stream (CameraCapture).
+  const openCamera = () => {
+    const isMobile =
+      typeof navigator !== "undefined" &&
+      (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints > 1 && window.matchMedia("(pointer: coarse)").matches));
+    if (isMobile && captureInputRef.current) {
+      captureInputRef.current.click();
+      return;
+    }
+    setCameraOpen(true);
   };
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -283,6 +299,16 @@ export function ReportIssuePage({ isDark, onBack }: ReportIssuePageProps) {
         )}
       </AnimatePresence>
 
+      {/* Native camera capture (mobile): opens the phone camera directly. */}
+      <input
+        ref={captureInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); e.target.value = ""; }}
+      />
+
       {/* Slide container */}
       <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
         <AnimatePresence mode="wait">
@@ -295,7 +321,7 @@ export function ReportIssuePage({ isDark, onBack }: ReportIssuePageProps) {
               onDrop={onDrop} handleFile={handleFile}
               uploadState={uploadState} setUploadState={setUploadState}
               image={image} setImage={setImage} imageName={imageName}
-              setCameraOpen={setCameraOpen}
+              onOpenCamera={openCamera}
               coords={coords}
               location={location} setLocation={setLocation}
               locating={locating} locationError={locationError}

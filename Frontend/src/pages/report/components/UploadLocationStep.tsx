@@ -22,7 +22,7 @@ interface UploadLocationStepProps {
   image: string | null;
   setImage: (v: string | null) => void;
   imageName: string;
-  setCameraOpen: (v: boolean) => void;
+  onOpenCamera: () => void;
   coords: { lat: number; lng: number } | null;
   location: string;
   setLocation: (v: string) => void;
@@ -37,7 +37,7 @@ interface UploadLocationStepProps {
 // Slide 1 — capture/upload evidence and confirm the issue location.
 export function UploadLocationStep({
   t, isDark, fileRef, dragOver, setDragOver, onDrop, handleFile,
-  uploadState, setUploadState, image, setImage, imageName, setCameraOpen,
+  uploadState, setUploadState, image, setImage, imageName, onOpenCamera,
   coords, location, setLocation, locating, locationError, handleUseGps, handlePickLocation,
   onBack, onNext,
 }: UploadLocationStepProps) {
@@ -96,7 +96,7 @@ export function UploadLocationStep({
                       style={{ background: "#2563EB", boxShadow: "0 4px 16px rgba(37,99,235,0.30)" }}>
                       <Upload className="w-4 h-4" /> Upload Image
                     </button>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setCameraOpen(true); }}
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onOpenCamera(); }}
                       className="inline-flex font-semibold rounded-full text-sm px-4 py-2 items-center gap-2 cursor-pointer"
                       style={{ background: t.card, color: t.text, border: `1px solid ${t.inputBorder}` }}>
                       <Camera className="w-4 h-4" /> Open Camera
