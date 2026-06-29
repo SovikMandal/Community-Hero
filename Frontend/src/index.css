@@ -314,25 +314,30 @@
  * dark-mode inline styles and turns the field white. There is no way to undo
  * this from inline styles, so we override it here. The huge inset box-shadow
  * repaints the field background, `-webkit-text-fill-color` recolors the text,
- * and the long transition keeps the override from flashing back.
+ * and the long transition keeps the override from flashing back. `!important`
+ * is needed to beat the user-agent autofill style on some Chromium/Edge builds.
  */
 .dark input:-webkit-autofill,
 .dark input:-webkit-autofill:hover,
 .dark input:-webkit-autofill:focus,
-.dark input:-webkit-autofill:active {
-  -webkit-text-fill-color: #E2E8F0;
+.dark input:-webkit-autofill:active,
+.dark input:autofill {
+  -webkit-text-fill-color: #E2E8F0 !important;
   caret-color: #E2E8F0;
-  -webkit-box-shadow: 0 0 0 1000px #1E293B inset;
-  box-shadow: 0 0 0 1000px #1E293B inset;
+  -webkit-box-shadow: 0 0 0 1000px #1E293B inset !important;
+  box-shadow: 0 0 0 1000px #1E293B inset !important;
+  background-color: #1E293B !important;
+  background-clip: content-box !important;
   transition: background-color 9999s ease-in-out 0s;
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-text-fill-color: #0F172A;
-  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset;
-  box-shadow: 0 0 0 1000px #FFFFFF inset;
+input:-webkit-autofill:active,
+input:autofill {
+  -webkit-text-fill-color: #0F172A !important;
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  box-shadow: 0 0 0 1000px #FFFFFF inset !important;
   transition: background-color 9999s ease-in-out 0s;
 }
