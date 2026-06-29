@@ -58,6 +58,13 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [forgotSent, setForgotSent] = useState(false);
 
+  // Switching tabs should clear any stale validation/auth error so it doesn't
+  // linger over an unrelated form (e.g. a login error showing on the signup tab).
+  const changeTab = (next: "login" | "signup" | "admin") => {
+    setTab(next);
+    setError(null);
+  };
+
   const openForgot = () => {
     setForgotEmail(form.email);
     setForgotError(null);
@@ -352,7 +359,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
               {(["login", "signup", "admin"] as const).map((t) => (
                 <button
                   key={t}
-                  onClick={() => setTab(t)}
+                  onClick={() => changeTab(t)}
                   className="relative flex-1 py-2.5 text-sm font-semibold rounded-xl transition-colors capitalize"
                   style={{
                     color: tab === t ? (isDark ? "#E2E8F0" : "#0F172A") : (isDark ? "#94A3B8" : "#64748B"),
@@ -404,7 +411,13 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     className="rounded-2xl px-4 py-3 text-sm font-medium"
-                    style={{ background: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}
+                    style={{
+                      background: isDark ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.10)",
+                      color: isDark ? "#FCA5A5" : "#DC2626",
+                      border: "1px solid rgba(239,68,68,0.35)",
+                      backdropFilter: "blur(8px)",
+                      WebkitBackdropFilter: "blur(8px)",
+                    }}
                   >
                     {error}
                   </motion.div>
@@ -669,7 +682,7 @@ export function AuthPage({ isDark = false, onBack, onEnter, onLogin, onAdminLogi
           >
             {tab === "login" ? "Don't have an account? " : "Already have an account? "}
             <button
-              onClick={() => setTab(tab === "login" ? "signup" : "login")}
+              onClick={() => changeTab(tab === "login" ? "signup" : "login")}
               className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
             >
               {tab === "login" ? "Create one" : "Sign in"}
