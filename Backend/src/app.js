@@ -63,6 +63,13 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// --- Keep-alive ---
+// Lightweight endpoint pinged by the self-ping job (and/or an external uptime
+// monitor) to prevent free-tier instances from idling. Kept minimal on purpose.
+app.get("/keepalive", (_req, res) => {
+  res.status(200).json({ status: "alive", timestamp: new Date().toISOString() });
+});
+
 // --- API routes ---
 app.use("/api", apiRoutes);
 

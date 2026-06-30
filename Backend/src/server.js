@@ -2,11 +2,15 @@
 import app from "./app.js";
 import { env } from "./config/env.js";
 import prisma from "./config/prisma.js";
+import { startKeepAlive } from "./services/keepalive.service.js";
 
 const server = app.listen(env.port, () => {
   console.log(`🚀 Community Hero API running on http://localhost:${env.port}`);
   console.log(`   Environment: ${env.nodeEnv}`);
   console.log(`   Health check: http://localhost:${env.port}/health`);
+
+  // Keep free-tier instances awake (no-op unless enabled / URL resolvable).
+  startKeepAlive();
 });
 
 // Graceful shutdown: close HTTP server and DB connections.
