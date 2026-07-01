@@ -49,7 +49,6 @@ Community Hero closes the loop between citizens and local authorities. A residen
 | | |
 |---|---|
 | 🚀 **Live Demo** | https://www.cityguardian.tech |
-| 🎬 **Demo Video** | _add your video link_ |
 | 💻 **Source Code** | https://github.com/SovikMandal/Community-Hero.git |
 | 👥 **Team** | _add team members & roles_ |
 
